@@ -1,0 +1,1431 @@
+# Multi-Tenant RBAC App - 40 Steps Implementation Guide
+
+## Phase 1: Foundation & Setup (Steps 1-8)
+
+### Step 1: Project Structure & Backend Initialization
+**Sub-steps:**
+1. Create root project directory and initialize Git repository
+2. Set up Node.js backend with Express and TypeScript
+3. Configure Prisma with MySQL connection
+4. Set up environment variables and configuration
+5. Create basic folder structure for backend
+
+**Cursor Prompt:**
+```
+Create a multi-tenant RBAC application backend with the following requirements:
+1. Initialize a Node.js project with TypeScript and Express
+2. Set up Prisma ORM with MySQL database
+3. Create folder structure: src/controllers, src/services, src/middleware, src/utils, src/types
+4. Configure environment variables for database connection, JWT secrets
+5. Add package.json with all necessary dependencies including express, prisma, mysql2, jsonwebtoken, bcryptjs, cors, helmet
+
+Create the basic server.ts file with Express setup and middleware configuration.
+```
+
+**Testing Required:** ✅ Basic server connection test
+**Git Commit:** `git commit -m "feat: initialize backend project with Express and Prisma setup"`
+
+---
+
+### Step 2: Database Schema Design
+**Sub-steps:**
+1. Create comprehensive Prisma schema for multi-tenant architecture
+2. Define tenant, user, role, and permission models
+3. Set up relationships between all entities
+4. Create migration files
+5. Seed initial data for development
+
+**Cursor Prompt:**
+```
+Create a comprehensive Prisma schema for a multi-tenant RBAC system with these models:
+1. Tenant (id, name, slug, domain, status, settings, timestamps)
+2. User (id, tenantId, email, password, firstName, lastName, status, lastLogin, timestamps)
+3. Role (id, tenantId, name, description, permissions, isDefault, timestamps)
+4. Permission (id, resource, action, description)
+5. UserRole (userId, roleId, assignedBy, assignedAt)
+6. RolePermission (roleId, permissionId)
+7. AuditLog (id, tenantId, userId, action, resource, oldValues, newValues, ipAddress, userAgent, createdAt)
+8. Session (id, userId, token, refreshToken, expiresAt, createdAt)
+
+Include proper relationships, indexes, and constraints. Create seed data for initial permissions and a super admin user.
+```
+
+**Testing Required:** ✅ Migration and seed data test
+**Git Commit:** `git commit -m "feat: create database schema with multi-tenant RBAC models"`
+
+---
+
+### Step 3: Authentication Middleware & JWT Setup
+**Sub-steps:**
+1. Create JWT utility functions for token generation and verification
+2. Implement authentication middleware
+3. Create tenant resolution middleware
+4. Set up password hashing utilities
+5. Configure CORS and security headers
+
+**Cursor Prompt:**
+```
+Create authentication and authorization middleware for the multi-tenant app:
+1. JWT utility functions (generateToken, verifyToken, generateRefreshToken)
+2. Authentication middleware that extracts and validates JWT tokens
+3. Tenant resolution middleware that identifies tenant from subdomain or header
+4. Password hashing utilities using bcryptjs
+5. RBAC middleware that checks user permissions based on roles
+
+Include proper error handling, token refresh logic, and tenant isolation checks.
+```
+
+**Testing Required:** ✅ JWT token generation/verification test
+**Git Commit:** `git commit -m "feat: implement authentication and tenant middleware"`
+
+---
+
+### Step 4: Authentication Controllers & Routes
+**Sub-steps:**
+1. Create authentication controller with login/logout methods
+2. Implement user registration and password reset
+3. Add refresh token functionality
+4. Create authentication routes
+5. Add input validation with express-validator
+
+**Cursor Prompt:**
+```
+Create authentication controllers and routes with these endpoints:
+1. POST /api/auth/login - user login with email/password
+2. POST /api/auth/register - user registration (tenant-specific)
+3. POST /api/auth/refresh - refresh JWT token
+4. POST /api/auth/logout - user logout and token invalidation
+5. POST /api/auth/forgot-password - send reset password email
+6. POST /api/auth/reset-password - reset password with token
+
+Include proper validation using express-validator, error handling, and security measures like rate limiting. Return proper JWT tokens and user data.
+```
+
+**Testing Required:** ✅ Authentication endpoints test with Postman/Jest
+**Git Commit:** `git commit -m "feat: implement authentication controllers and routes"`
+
+---
+
+### Step 5: React Frontend Setup
+**Sub-steps:**
+1. Initialize React project with Vite and TypeScript
+2. Set up Redux Toolkit and RTK Query
+3. Configure Material-UI theme and components
+4. Create basic folder structure
+5. Set up routing with React Router
+
+**Cursor Prompt:**
+```
+Set up a React TypeScript project with these requirements:
+1. Use Vite as build tool with TypeScript template
+2. Configure Redux Toolkit store with RTK Query for API calls
+3. Set up Material-UI v5 with custom theme (dark/light mode support)
+4. Create folder structure: src/components, src/pages, src/store, src/hooks, src/utils, src/types
+5. Configure React Router v6 with protected routes
+
+Install and configure: @reduxjs/toolkit, react-redux, @mui/material, react-router-dom, react-hook-form, yup validation.
+Create basic App component with theme provider and router setup.
+```
+
+**Testing Required:** ✅ React app startup and navigation test
+**Git Commit:** `git commit -m "feat: initialize React frontend with Redux and Material-UI"`
+
+---
+
+### Step 6: Angular Frontend Setup
+**Sub-steps:**
+1. Initialize Angular project with latest version
+2. Set up NgRx store and effects
+3. Configure Angular Material theme
+4. Create feature modules structure
+5. Set up routing and guards
+
+**Cursor Prompt:**
+```
+Create an Angular 17+ project with standalone components:
+1. Generate new Angular project with routing and SCSS
+2. Add Angular Material, NgRx store, and NgRx effects
+3. Create feature modules: auth, dashboard, users, roles, shared
+4. Set up authentication guard and role-based guards
+5. Configure Angular Material theme with custom colors
+
+Use ng add @angular/material @ngrx/store @ngrx/effects @ngrx/store-devtools.
+Create basic app component with material toolbar and navigation.
+```
+
+**Testing Required:** ✅ Angular app startup and routing test
+**Git Commit:** `git commit -m "feat: initialize Angular frontend with NgRx and Material"`
+
+---
+
+### Step 7: React Native Setup
+**Sub-steps:**
+1. Initialize Expo React Native project
+2. Set up Redux Toolkit for mobile
+3. Configure NativeBase/Tamagui for UI components
+4. Create navigation structure
+5. Set up development environment
+
+**Cursor Prompt:**
+```
+Set up React Native project using Expo SDK 50+:
+1. Create Expo project with TypeScript template
+2. Install and configure Redux Toolkit for state management
+3. Set up React Navigation v6 with stack and tab navigators
+4. Configure NativeBase for UI components with custom theme
+5. Create folder structure: src/screens, src/components, src/store, src/services, src/types
+
+Install: @reduxjs/toolkit, react-redux, @react-navigation/native, @react-navigation/stack, native-base, react-native-vector-icons.
+```
+
+**Testing Required:** ✅ React Native app startup on simulator/device
+**Git Commit:** `git commit -m "feat: initialize React Native app with Redux and navigation"`
+
+---
+
+### Step 8: API Integration Setup
+**Sub-steps:**
+1. Create API service layer for React (RTK Query)
+2. Set up API service for Angular (NgRx Effects)
+3. Create API service for React Native
+4. Configure base URLs and interceptors
+5. Add error handling and retry logic
+
+**Cursor Prompt:**
+```
+Create API integration layer for all three frontend platforms:
+
+React (RTK Query):
+1. Create authApi slice with login, register, refresh endpoints
+2. Configure base query with automatic token attachment
+3. Add error handling and token refresh logic
+
+Angular (NgRx):
+1. Create auth effects for API calls
+2. Set up HTTP interceptors for token and tenant headers
+3. Create auth service with proper error handling
+
+React Native:
+1. Create API service using RTK Query
+2. Configure AsyncStorage for token persistence
+3. Add network connectivity checks
+
+Include proper TypeScript types for all API responses and requests.
+```
+
+**Testing Required:** ✅ API connectivity test from all platforms
+**Git Commit:** `git commit -m "feat: implement API integration layer for all platforms"`
+
+---
+
+## Phase 2: Authentication & Authorization (Steps 9-16)
+
+### Step 9: Login Components (All Platforms)
+**Sub-steps:**
+1. Create login form component for React with Material-UI
+2. Create login component for Angular with Material
+3. Create login screen for React Native
+4. Add form validation and error handling
+5. Implement authentication state management
+
+**Cursor Prompt:**
+```
+Create login components for all three platforms:
+
+React:
+1. LoginForm component using Material-UI with email and password fields
+2. Use React Hook Form with Yup validation
+3. Connect to RTK Query authApi for login mutation
+4. Add loading states, error display, and success redirection
+5. Include "Remember Me" and "Forgot Password" links
+
+Angular:
+1. LoginComponent with Angular Material form controls
+2. Use reactive forms with custom validators
+3. Connect to NgRx store for login action
+4. Add proper error handling and loading states
+
+React Native:
+1. LoginScreen with NativeBase form components
+2. Handle keyboard behavior and responsive design
+3. Connect to Redux store with RTK Query
+
+Include proper accessibility features and responsive design for all platforms.
+```
+
+**Testing Required:** ✅ Login functionality test on all platforms
+**Git Commit:** `git commit -m "feat: implement login components for all platforms"`
+
+---
+
+### Step 10: User Registration System
+**Sub-steps:**
+1. Create registration backend logic with tenant assignment
+2. Build registration forms for all platforms
+3. Add email verification system
+4. Implement user invitation workflow
+5. Create tenant onboarding flow
+
+**Cursor Prompt:**
+```
+Implement comprehensive user registration system:
+
+Backend:
+1. Registration controller with tenant validation
+2. Email verification using nodemailer
+3. User invitation system with temporary tokens
+4. Tenant creation flow for new organizations
+
+Frontend (All platforms):
+1. Registration forms with multi-step wizard
+2. Email verification confirmation screens
+3. Invitation acceptance screens
+4. Tenant setup wizard for new organizations
+5. Form validation for all required fields
+
+Include proper error handling, loading states, and success confirmations.
+```
+
+**Testing Required:** ✅ Registration flow test with email verification
+**Git Commit:** `git commit -m "feat: implement user registration and invitation system"`
+
+---
+
+### Step 11: Role-Based Access Control Implementation
+**Sub-steps:**
+1. Create permission checking utilities
+2. Implement role-based route guards
+3. Create permission-based component rendering
+4. Add dynamic menu generation based on roles
+5. Implement role switching functionality
+
+**Cursor Prompt:**
+```
+Implement comprehensive RBAC system:
+
+Backend:
+1. Permission middleware that checks user roles and permissions
+2. Role hierarchy validation (Super Admin > Tenant Admin > Manager > etc.)
+3. Dynamic permission checking for API endpoints
+4. Role assignment and revocation endpoints
+
+Frontend (All platforms):
+1. Permission-based route guards
+2. Conditional component rendering based on permissions
+3. Dynamic navigation menu generation
+4. Role switching interface for users with multiple roles
+5. Permission checking hooks/services
+
+Create reusable permission checking utilities and HOCs/guards for each platform.
+```
+
+**Testing Required:** ✅ RBAC functionality test with different user roles
+**Git Commit:** `git commit -m "feat: implement comprehensive RBAC system"`
+
+---
+
+### Step 12: Tenant Management System
+**Sub-steps:**
+1. Create tenant CRUD operations backend
+2. Implement tenant-specific data isolation
+3. Build tenant management UI components
+4. Add subdomain/domain mapping
+5. Create tenant settings and configuration
+
+**Cursor Prompt:**
+```
+Create tenant management system:
+
+Backend:
+1. Tenant CRUD controllers with proper validation
+2. Middleware for tenant data isolation in all queries
+3. Subdomain resolution and tenant switching
+4. Tenant-specific settings and configuration storage
+5. Tenant subscription and billing preparation
+
+Frontend:
+1. Tenant management dashboard for super admins
+2. Tenant settings page for tenant admins
+3. Tenant switching interface
+4. Tenant onboarding wizard
+5. Domain configuration interface
+
+Ensure all database queries are tenant-aware and data is properly isolated.
+```
+
+**Testing Required:** ✅ Tenant isolation and switching test
+**Git Commit:** `git commit -m "feat: implement tenant management and data isolation"`
+
+---
+
+### Step 13: Session Management & Security
+**Sub-steps:**
+1. Implement session tracking and management
+2. Add concurrent session handling
+3. Create device management system
+4. Implement automatic token refresh
+5. Add security monitoring and alerts
+
+**Cursor Prompt:**
+```
+Implement advanced session management:
+
+Backend:
+1. Session tracking with device information
+2. Concurrent session limiting per user
+3. Suspicious activity detection and alerts
+4. Token refresh rotation for security
+5. Session invalidation on security events
+
+Frontend:
+1. Automatic token refresh implementation
+2. Session timeout warnings
+3. Device management interface
+4. Security alerts and notifications
+5. Logout confirmation for active sessions
+
+Include proper cleanup of expired sessions and security event logging.
+```
+
+**Testing Required:** ✅ Session management and security test
+**Git Commit:** `git commit -m "feat: implement advanced session management and security"`
+
+---
+
+### Step 14: Password Management System
+**Sub-steps:**
+1. Create password reset backend functionality
+2. Implement password policy enforcement
+3. Add password strength validation
+4. Create password history tracking
+5. Build password management UI components
+
+**Cursor Prompt:**
+```
+Create comprehensive password management:
+
+Backend:
+1. Password reset with email tokens (expiring in 1 hour)
+2. Password policy enforcement (complexity, length, history)
+3. Password history tracking (prevent reuse of last 5 passwords)
+4. Account lockout after failed attempts
+5. Password expiration and forced reset
+
+Frontend:
+1. Forgot password form with email input
+2. Password reset form with token validation
+3. Password strength indicator
+4. Change password interface
+5. Password policy display
+
+Include proper validation, error handling, and security measures.
+```
+
+**Testing Required:** ✅ Password reset and policy enforcement test
+**Git Commit:** `git commit -m "feat: implement password management system"`
+
+---
+
+### Step 15: Two-Factor Authentication (2FA)
+**Sub-steps:**
+1. Implement TOTP-based 2FA backend
+2. Add SMS-based 2FA option
+3. Create 2FA setup and verification UI
+4. Implement backup codes system
+5. Add 2FA recovery options
+
+**Cursor Prompt:**
+```
+Implement Two-Factor Authentication:
+
+Backend:
+1. TOTP generation and verification using speakeasy
+2. SMS OTP service integration (free tier service)
+3. Backup codes generation and storage
+4. 2FA enforcement policies per tenant
+5. 2FA recovery and reset procedures
+
+Frontend:
+1. 2FA setup wizard with QR code generation
+2. 2FA verification during login
+3. Backup codes display and download
+4. 2FA management in user profile
+5. Recovery code input interface
+
+Include proper error handling and user guidance throughout the 2FA process.
+```
+
+**Testing Required:** ✅ 2FA setup and verification test
+**Git Commit:** `git commit -m "feat: implement Two-Factor Authentication system"`
+
+---
+
+### Step 16: Authentication Testing Suite
+**Sub-steps:**
+1. Create unit tests for authentication controllers
+2. Add integration tests for auth endpoints
+3. Create frontend authentication tests
+4. Add E2E tests for login flows
+5. Performance test authentication system
+
+**Cursor Prompt:**
+```
+Create comprehensive test suite for authentication:
+
+Backend Tests:
+1. Unit tests for auth controllers using Jest
+2. Integration tests for all auth endpoints
+3. Security tests for JWT token validation
+4. Rate limiting and brute force protection tests
+5. Database transaction tests for user operations
+
+Frontend Tests:
+1. Component tests for login/register forms
+2. Redux store tests for auth state management
+3. API integration tests using MSW (Mock Service Worker)
+4. E2E tests using Playwright for complete auth flows
+5. Accessibility tests for auth components
+
+Include test coverage reports and CI/CD integration setup.
+```
+
+**Testing Required:** ✅ Run full authentication test suite
+**Git Commit:** `git commit -m "test: add comprehensive authentication test suite"`
+
+---
+
+## Phase 3: User Management Module (Steps 17-24)
+
+### Step 17: User CRUD Operations Backend
+**Sub-steps:**
+1. Create user controller with CRUD operations
+2. Implement user search and filtering
+3. Add bulk user operations
+4. Create user validation and sanitization
+5. Implement user activity tracking
+
+**Cursor Prompt:**
+```
+Create comprehensive user management backend:
+
+1. UserController with full CRUD operations (Create, Read, Update, Delete)
+2. Advanced search with filters (name, email, role, status, date range)
+3. Bulk operations (bulk create, update, delete, role assignment)
+4. User profile image upload and management
+5. User activity tracking and audit logging
+
+Include proper validation using Joi or Yup, tenant-aware queries, and comprehensive error handling.
+Create endpoints: GET /users (with pagination), POST /users, PUT /users/:id, DELETE /users/:id, POST /users/bulk.
+```
+
+**Testing Required:** ✅ User CRUD operations API test
+**Git Commit:** `git commit -m "feat: implement user CRUD operations backend"`
+
+---
+
+### Step 18: User Management UI - React
+**Sub-steps:**
+1. Create user list component with DataGrid
+2. Build user creation and editing forms
+3. Add user search and filtering interface
+4. Implement bulk operations UI
+5. Create user profile management
+
+**Cursor Prompt:**
+```
+Create user management interface for React:
+
+1. UsersList component using Material-UI DataGrid with:
+   - Pagination, sorting, and filtering
+   - Bulk selection and operations
+   - Action buttons (edit, delete, view profile)
+   - Search input with debounced queries
+
+2. UserForm component (create/edit) with:
+   - Form validation using React Hook Form + Yup
+   - Role assignment multiselect
+   - Profile image upload with preview
+   - Status toggle and permissions display
+
+3. UserProfile component with:
+   - User details display
+   - Activity history
+   - Role management interface
+   - Account settings
+
+Include proper loading states, error handling, and success notifications.
+```
+
+**Testing Required:** ✅ User management UI functionality test
+**Git Commit:** `git commit -m "feat: implement user management UI for React"`
+
+---
+
+### Step 19: User Management UI - Angular
+**Sub-steps:**
+1. Create user management components with Angular Material
+2. Implement user forms with reactive forms
+3. Add search and filtering functionality
+4. Create bulk operations interface
+5. Build user profile components
+
+**Cursor Prompt:**
+```
+Create user management interface for Angular:
+
+1. UsersList component using Angular Material Table:
+   - MatTableDataSource with pagination and sorting
+   - Filter chips and advanced search
+   - Selection model for bulk operations
+   - Context menu for row actions
+
+2. UserForm component using reactive forms:
+   - FormBuilder with custom validators
+   - Role selection with MatSelect
+   - File upload for profile images
+   - Dynamic form validation with error display
+
+3. UserProfile component:
+   - Material cards for user information
+   - Tab navigation for different sections
+   - Edit mode with form controls
+   - Activity timeline component
+
+Use Angular Material components throughout and implement proper state management with NgRx.
+```
+
+**Testing Required:** ✅ Angular user management functionality test
+**Git Commit:** `git commit -m "feat: implement user management UI for Angular"`
+
+---
+
+### Step 20: User Management UI - React Native
+**Sub-steps:**
+1. Create user list screens with FlatList
+2. Build user forms with native inputs
+3. Add search and filtering functionality
+4. Implement native-style navigation
+5. Create user profile screens
+
+**Cursor Prompt:**
+```
+Create user management interface for React Native:
+
+1. UsersListScreen with:
+   - FlatList with pull-to-refresh and infinite scrolling
+   - Search input with real-time filtering
+   - Swipe actions for quick operations
+   - Native-style selection mode
+
+2. UserFormScreen with:
+   - Native input components with validation
+   - Image picker for profile photos
+   - Role selection with picker/modal
+   - Native keyboard handling
+
+3. UserProfileScreen with:
+   - Scrollable profile view
+   - Native navigation patterns
+   - Action sheets for operations
+   - Share functionality
+
+Use React Navigation for screen transitions and handle platform-specific UI patterns.
+```
+
+**Testing Required:** ✅ React Native user management test on device
+**Git Commit:** `git commit -m "feat: implement user management UI for React Native"`
+
+---
+
+### Step 21: Advanced User Search & Filtering
+**Sub-steps:**
+1. Implement backend search with full-text capabilities
+2. Create advanced filtering system
+3. Add saved searches functionality
+4. Implement search suggestions
+5. Add export functionality for search results
+
+**Cursor Prompt:**
+```
+Implement advanced search and filtering system:
+
+Backend:
+1. Full-text search implementation using MySQL FULLTEXT indexes
+2. Advanced filtering with multiple criteria combinations
+3. Search result ranking and relevance scoring
+4. Saved searches storage and management
+5. Export functionality (CSV, Excel) for filtered results
+
+Frontend (All platforms):
+1. Advanced search builder interface
+2. Filter chips with easy removal
+3. Search history and suggestions
+4. Real-time search with debouncing
+5. Export dialog with format options
+
+Include proper performance optimization for large datasets and search result caching.
+```
+
+**Testing Required:** ✅ Advanced search and filtering test with large dataset
+**Git Commit:** `git commit -m "feat: implement advanced search and filtering system"`
+
+---
+
+### Step 22: User Import/Export System
+**Sub-steps:**
+1. Create CSV/Excel import backend functionality
+2. Implement data validation and error reporting
+3. Build import UI with progress tracking
+4. Create export functionality with customization
+5. Add import/export templates and documentation
+
+**Cursor Prompt:**
+```
+Create comprehensive import/export system:
+
+Backend:
+1. File upload handling with validation (CSV, Excel)
+2. Data parsing with error detection and reporting
+3. Bulk user creation with rollback on errors
+4. Export functionality with custom field selection
+5. Template generation for import formats
+
+Frontend:
+1. File upload component with drag-and-drop
+2. Import wizard with preview and validation steps
+3. Progress tracking for large imports
+4. Error reporting with downloadable error logs
+5. Export dialog with field selection and format options
+
+Include proper data validation, duplicate detection, and user feedback throughout the process.
+```
+
+**Testing Required:** ✅ Import/export functionality test with various file formats
+**Git Commit:** `git commit -m "feat: implement user import/export system"`
+
+---
+
+### Step 23: User Activity & Audit Logging
+**Sub-steps:**
+1. Implement comprehensive activity logging backend
+2. Create activity timeline and history views
+3. Add audit trail reporting
+4. Implement user behavior analytics
+5. Create activity-based notifications
+
+**Cursor Prompt:**
+```
+Create user activity and audit system:
+
+Backend:
+1. Comprehensive audit logging for all user actions
+2. Activity aggregation and analytics
+3. Audit trail API with filtering and pagination
+4. User behavior tracking and insights
+5. Automated alerts for suspicious activities
+
+Frontend:
+1. User activity timeline with detailed logs
+2. Audit trail viewer with filtering options
+3. Activity dashboard with charts and metrics
+4. User behavior analytics display
+5. Activity-based notification system
+
+Include proper data retention policies and performance optimization for large audit datasets.
+```
+
+**Testing Required:** ✅ Activity logging and audit trail test
+**Git Commit:** `git commit -m "feat: implement user activity and audit logging"`
+
+---
+
+### Step 24: User Management Testing Suite
+**Sub-steps:**
+1. Create unit tests for user controllers
+2. Add integration tests for user operations
+3. Create frontend user management tests
+4. Add E2E tests for user workflows
+5. Performance test user management system
+
+**Cursor Prompt:**
+```
+Create comprehensive test suite for user management:
+
+Backend Tests:
+1. Unit tests for UserController and UserService
+2. Integration tests for all user endpoints
+3. Database tests for user operations
+4. Performance tests for search and filtering
+5. Security tests for user data access
+
+Frontend Tests:
+1. Component tests for all user management components
+2. Form validation tests
+3. Search and filtering functionality tests
+4. Import/export workflow tests
+5. User interaction E2E tests
+
+Include test coverage reports and performance benchmarks.
+```
+
+**Testing Required:** ✅ Run complete user management test suite
+**Git Commit:** `git commit -m "test: add comprehensive user management test suite"`
+
+---
+
+## Phase 4: Role & Permission Management (Steps 25-32)
+
+### Step 25: Role Management Backend
+**Sub-steps:**
+1. Create role CRUD operations with hierarchy validation
+2. Implement permission assignment and management
+3. Add role templates and presets
+4. Create role inheritance system
+5. Implement role-based resource access control
+
+**Cursor Prompt:**
+```
+Create comprehensive role management backend:
+
+1. RoleController with CRUD operations and hierarchy validation
+2. Permission management with granular resource-action combinations
+3. Role templates system for quick role creation
+4. Role inheritance with permission cascading
+5. Dynamic permission checking for resources
+
+Include endpoints for:
+- GET/POST/PUT/DELETE /api/roles
+- POST /api/roles/:id/permissions
+- GET /api/roles/templates
+- POST /api/roles/:id/inherit/:parentId
+- GET /api/permissions with resource grouping
+
+Ensure proper tenant isolation and hierarchy validation.
+```
+
+**Testing Required:** ✅ Role management API functionality test
+**Git Commit:** `git commit -m "feat: implement role management backend"`
+
+---
+
+### Step 26: Permission System Architecture
+**Sub-steps:**
+1. Design granular permission structure
+2. Create resource-based permission mapping
+3. Implement dynamic permission checking
+4. Add permission grouping and categories
+5. Create permission testing interface
+
+**Cursor Prompt:**
+```
+Create sophisticated permission system:
+
+1. Granular permission structure with resources and actions:
+   - Resources: users, roles, tenants, reports, settings
+   - Actions: create, read, update, delete, execute, manage
+
+2. Permission grouping and categories for UI organization
+
+3. Dynamic permission checking middleware for API endpoints
+
+4. Permission testing interface for administrators
+
+5. Bulk permission operations and templates
+
+Create a permission matrix that's easily manageable and scalable for future resources.
+```
+
+**Testing Required:** ✅ Permission system validation test
+**Git Commit:** `git commit -m "feat: implement granular permission system"`
+
+---
+
+### Step 27: Role Management UI - React
+**Sub-steps:**
+1. Create role list and management interface
+2. Build role creation and editing forms
+3. Implement permission matrix interface
+4. Add role hierarchy visualization
+5. Create role assignment bulk operations
+
+**Cursor Prompt:**
+```
+Create role management interface for React:
+
+1. RolesList component with Material-UI DataGrid:
+   - Role hierarchy tree view
+   - Permission count display
+   - User count per role
+   - Quick actions (duplicate, delete)
+
+2. RoleForm component with:
+   - Role details form
+   - Permission matrix with checkboxes
+   - Permission search and filtering
+   - Role template selection
+
+3. PermissionMatrix component:
+   - Resource-grouped permission display
+   - Batch permission operations
+   - Permission inheritance visualization
+   - Permission testing interface
+
+Include drag-and-drop for role hierarchy and visual permission management.
+```
+
+**Testing Required:** ✅ Role management UI functionality test
+**Git Commit:** `git commit -m "feat: implement role management UI for React"`
+
+---
+
+### Step 28: Role Management UI - Angular
+**Sub-steps:**
+1. Create Angular role management components
+2. Implement permission matrix with Material components
+3. Add role hierarchy tree interface
+4. Create role template system
+5. Build role assignment interface
+
+**Cursor Prompt:**
+```
+Create role management interface for Angular:
+
+1. RolesList component using Material Tree:
+   - Hierarchical role display
+   - Expandable permission details
+   - Context menu for actions
+   - Drag-and-drop reordering
+
+2. RoleForm using reactive forms:
+   - Dynamic form controls
+   - Permission checkboxes with indeterminate state
+   - Role template integration
+   - Validation with custom validators
+
+3. PermissionMatrix component:
+   - Material table with grouped headers
+   - Selection model for bulk operations
+   - Filter and search capabilities
+   - Export permission report
+
+Use Angular Material CDK for advanced interactions and state management.
+```
+
+**Testing Required:** ✅ Angular role management functionality test
+**Git Commit:** `git commit -m "feat: implement role management UI for Angular"`
+
+---
+
+### Step 29: Role Management UI - React Native
+**Sub-steps:**
+1. Create native-style role management screens
+2. Build touch-friendly permission interface
+3. Implement role hierarchy navigation
+4. Add native selection and editing
+5. Create mobile-optimized role assignment
+
+**Cursor Prompt:**
+```
+Create role management interface for React Native:
+
+1. RolesListScreen with:
+   - Hierarchical FlatList with indentation
+   - Swipe actions for role operations
+   - Pull-to-refresh functionality
+   - Native search interface
+
+2. RoleFormScreen with:
+   - Native form inputs
+   - Grouped permission switches
+   - Expandable sections for permission categories
+   - Save/cancel native navigation
+
+3. PermissionMatrixScreen:
+   - Scrollable permission grid
+   - Native picker for bulk operations
+   - Touch-optimized selection interface
+   - Modal confirmations for changes
+
+Optimize for mobile interactions and consider tablet layouts.
+```
+
+**Testing Required:** ✅ React Native role management test
+**Git Commit:** `git commit -m "feat: implement role management UI for React Native"`
+
+---
+
+### Step 30: Dynamic Role Assignment System
+**Sub-steps:**
+1. Create flexible role assignment backend
+2. Implement time-based role assignments
+3. Add conditional role activation
+4. Create role request and approval workflow
+5. Implement role switching interface
+
+**Cursor Prompt:**
+```
+Create dynamic role assignment system:
+
+Backend:
+1. Flexible role assignment with time-based activation/expiration
+2. Conditional role assignments based on user attributes
+3. Role request and approval workflow
+4. Role assignment history and audit
+5. Automatic role assignment rules
+
+Frontend:
+1. Role assignment interface with date/time pickers
+2. Role request submission forms
+3. Approval workflow for managers
+4. Role switching interface for users
+5. Role assignment timeline and history
+
+Include notification systems for role changes and expiration warnings.
+```
+
+**Testing Required:** ✅ Dynamic role assignment workflow test
+**Git Commit:** `git commit -m "feat: implement dynamic role assignment system"`
+
+---
+
+### Step 31: Role Analytics & Reporting
+**Sub-steps:**
+1. Create role usage analytics backend
+2. Implement permission utilization tracking
+3. Build role effectiveness reporting
+4. Add security compliance reporting
+5. Create role optimization recommendations
+
+**Cursor Prompt:**
+```
+Create role analytics and reporting system:
+
+Backend:
+1. Role usage analytics and metrics collection
+2. Permission utilization tracking and statistics
+3. Role effectiveness analysis
+4. Security compliance reporting
+5. Automated role optimization suggestions
+
+Frontend:
+1. Role analytics dashboard with charts
+2. Permission usage heat maps
+3. Role compliance reports
+4. Interactive role analysis tools
+5. Exportable analytics reports
+
+Include data visualization using Chart.js/D3 and proper performance optimization.
+```
+
+**Testing Required:** ✅ Role analytics and reporting test
+**Git Commit:** `git commit -m "feat: implement role analytics and reporting"`
+
+---
+
+### Step 32: Role Management Testing Suite
+**Sub-steps:**
+1. Create comprehensive role management tests
+2. Add permission system validation tests
+3. Create role hierarchy and inheritance tests
+4. Add performance tests for role operations
+5. Implement security tests for role access
+
+**Cursor Prompt:**
+```
+Create comprehensive test suite for role management:
+
+Backend Tests:
+1. Unit tests for role controllers and services
+2. Permission system validation tests
+3. Role hierarchy and inheritance tests
+4. Security tests for role-based access
+5. Performance tests for large role datasets
+
+Frontend Tests:
+1. Component tests for all role management interfaces
+2. Permission matrix interaction tests
+3. Role assignment workflow tests
+4. Role switching functionality tests
+5. E2E tests for complete role management flows
+
+Include edge case testing and security vulnerability assessments.
+```
+
+**Testing Required:** ✅ Complete role management test suite execution
+**Git Commit:** `git commit -m "test: add comprehensive role management test suite"`
+
+---
+
+## Phase 5: Dashboard & Analytics (Steps 33-40)
+
+### Step 33: Dashboard Backend & Analytics Engine
+**Sub-steps:**
+1. Create analytics data collection system
+2. Implement KPI calculation engines
+3. Build dashboard API endpoints
+4. Create real-time data aggregation
+5. Implement caching for performance
+
+**Cursor Prompt:**
+```
+Create analytics and dashboard backend:
+
+1. Analytics data collection system with event tracking
+2. KPI calculation engines for user metrics, role usage, system performance
+3. Dashboard API endpoints with customizable widgets
+4. Real-time data aggregation using aggregation pipelines
+5. Redis caching for dashboard performance
+
+Include endpoints for:
+- GET /api/analytics/dashboard (customizable KPIs)
+- GET /api/analytics/users (user activity metrics)
+- GET /api/analytics/roles (role usage statistics)
+- GET /api/analytics/system (system performance metrics)
+- POST /api/analytics/events (event tracking)
+
+**Testing Required:** ✅ Analytics data collection and API performance test
+**Git Commit:** `git commit -m "feat: implement dashboard backend and analytics engine"`
+
+---
+
+### Step 34: Interactive Dashboard UI - React
+**Sub-steps:**
+1. Create customizable dashboard layout system
+2. Build KPI widget components with charts
+3. Implement real-time data updates
+4. Add dashboard customization interface
+5. Create responsive dashboard grid
+
+**Cursor Prompt:**
+```
+Create interactive dashboard for React:
+
+1. Dashboard layout system using react-grid-layout:
+   - Draggable and resizable widgets
+   - Customizable grid positions
+   - Widget library with various chart types
+   - Save/load dashboard configurations
+
+2. KPI widgets using Recharts/Chart.js:
+   - Line charts for trends
+   - Bar charts for comparisons
+   - Pie charts for distributions
+   - Number displays for key metrics
+   - Progress indicators for goals
+
+3. Real-time updates using WebSocket/SSE:
+   - Live data streaming
+   - Automatic refresh intervals
+   - Connection status indicators
+   - Offline mode handling
+
+4. Dashboard customization panel:
+   - Widget selection interface
+   - Color scheme customization
+   - Time range selectors
+   - Filter configurations
+
+Include proper loading states, error handling, and responsive design.
+```
+
+**Testing Required:** ✅ Dashboard interactivity and real-time updates test
+**Git Commit:** `git commit -m "feat: implement interactive dashboard UI for React"`
+
+---
+
+### Step 35: Dashboard UI - Angular
+**Sub-steps:**
+1. Create Angular dashboard with Material components
+2. Build chart components using Angular-friendly libraries
+3. Implement dashboard state management with NgRx
+4. Add drag-and-drop dashboard customization
+5. Create responsive dashboard layout
+
+**Cursor Prompt:**
+```
+Create dashboard interface for Angular:
+
+1. Dashboard component with Angular Material:
+   - CDK drag-drop for widget arrangement
+   - Material cards for widget containers
+   - Responsive grid system using Angular Flex Layout
+   - Dashboard configuration service
+
+2. Chart components using ng2-charts or ngx-charts:
+   - Reusable chart directives
+   - Data transformation pipes
+   - Animation configurations
+   - Accessibility features
+
+3. NgRx state management:
+   - Dashboard state with widget configurations
+   - Effects for data fetching and updates
+   - Selectors for computed dashboard data
+   - Actions for widget operations
+
+4. Customization interface:
+   - Material dialog for widget selection
+   - Form controls for chart configuration
+   - Theme selection with material theming
+   - Export/import dashboard configurations
+
+Use Angular animations for smooth transitions and implement proper change detection strategies.
+```
+
+**Testing Required:** ✅ Angular dashboard functionality and customization test
+**Git Commit:** `git commit -m "feat: implement dashboard UI for Angular"`
+
+---
+
+### Step 36: Mobile Dashboard - React Native
+**Sub-steps:**
+1. Create mobile-optimized dashboard screens
+2. Build touch-friendly chart components
+3. Implement swipe navigation between widgets
+4. Add pull-to-refresh functionality
+5. Create mobile-specific KPI displays
+
+**Cursor Prompt:**
+```
+Create mobile dashboard for React Native:
+
+1. Dashboard screens optimized for mobile:
+   - Swipeable widget carousel
+   - Vertical scrolling layout
+   - Touch-friendly interactions
+   - Responsive design for tablets
+
+2. Mobile chart components:
+   - Victory Native for charts
+   - Touch interactions and zoom
+   - Simplified data visualization
+   - Optimized rendering performance
+
+3. Navigation and interactions:
+   - Tab navigation between dashboard sections
+   - Pull-to-refresh for data updates
+   - Modal sheets for detailed views
+   - Native sharing capabilities
+
+4. Mobile-specific features:
+   - Push notifications for alerts
+   - Offline data caching
+   - Background data sync
+   - Device orientation handling
+
+Include proper performance optimization and native UI patterns.
+```
+
+**Testing Required:** ✅ Mobile dashboard functionality and performance test
+**Git Commit:** `git commit -m "feat: implement mobile dashboard for React Native"`
+
+---
+
+### Step 37: Real-time Notifications & Alerts
+**Sub-steps:**
+1. Create notification system backend with WebSocket
+2. Implement alert rules and triggers
+3. Build notification UI components
+4. Add email and push notification integration
+5. Create notification preference management
+
+**Cursor Prompt:**
+```
+Create comprehensive notification system:
+
+Backend:
+1. WebSocket server for real-time notifications
+2. Alert rule engine with configurable triggers
+3. Notification queue management with Redis
+4. Email notification service integration
+5. Push notification service for mobile apps
+
+Frontend (All platforms):
+1. Real-time notification components
+2. Notification center with history
+3. Alert configuration interfaces
+4. Notification preference settings
+5. Toast/snackbar notification displays
+
+Mobile specific:
+1. Push notification handling
+2. Background notification processing
+3. Notification action buttons
+4. Deep linking from notifications
+
+Include proper notification categorization, priority levels, and user preferences.
+```
+
+**Testing Required:** ✅ Real-time notifications and alert system test
+**Git Commit:** `git commit -m "feat: implement real-time notifications and alerts"`
+
+---
+
+### Step 38: Advanced Analytics & Reporting
+**Sub-steps:**
+1. Create comprehensive reporting backend
+2. Implement custom report builder
+3. Add data export functionality in multiple formats
+4. Create scheduled report generation
+5. Build advanced filtering and drill-down capabilities
+
+**Cursor Prompt:**
+```
+Create advanced analytics and reporting:
+
+Backend:
+1. Report generation engine with templates
+2. Custom query builder for complex analytics
+3. Data export in PDF, Excel, CSV formats
+4. Scheduled report generation with cron jobs
+5. Report caching and optimization
+
+Frontend:
+1. Report builder interface with drag-and-drop
+2. Advanced filtering with date ranges and conditions
+3. Interactive charts with drill-down capabilities
+4. Report sharing and collaboration features
+5. Report scheduling interface
+
+Include:
+- Multi-tenant report isolation
+- Performance optimization for large datasets
+- Report template library
+- Data visualization best practices
+- Export progress tracking
+```
+
+**Testing Required:** ✅ Advanced reporting and analytics test
+**Git Commit:** `git commit -m "feat: implement advanced analytics and reporting"`
+
+---
+
+### Step 39: Performance Optimization & Caching
+**Sub-steps:**
+1. Implement Redis caching for dashboard data
+2. Add database query optimization
+3. Create frontend performance optimizations
+4. Implement lazy loading and code splitting
+5. Add monitoring and performance metrics
+
+**Cursor Prompt:**
+```
+Implement comprehensive performance optimization:
+
+Backend:
+1. Redis caching strategy for dashboard queries
+2. Database query optimization with proper indexes
+3. API response compression and optimization
+4. Connection pooling and database optimization
+5. Performance monitoring with metrics collection
+
+Frontend:
+1. Lazy loading for dashboard components
+2. Code splitting and dynamic imports
+3. Virtual scrolling for large data sets
+4. Image optimization and lazy loading
+5. Bundle size optimization
+
+Mobile:
+1. Native performance optimizations
+2. Image caching and optimization
+3. Background task optimization
+4. Memory usage monitoring
+5. Battery usage optimization
+
+Include performance testing, monitoring dashboards, and automated optimization alerts.
+```
+
+**Testing Required:** ✅ Performance benchmarking and optimization validation
+**Git Commit:** `git commit -m "feat: implement performance optimization and caching"`
+
+---
+
+### Step 40: Final Integration, Testing & Deployment
+**Sub-steps:**
+1. Create comprehensive E2E testing suite
+2. Implement CI/CD pipelines for all platforms
+3. Set up production deployment configuration
+4. Create monitoring and logging infrastructure
+5. Conduct security audit and penetration testing
+
+**Cursor Prompt:**
+```
+Complete final integration and deployment setup:
+
+1. E2E testing suite using Playwright:
+   - Cross-browser testing for web platforms
+   - Mobile app testing with Detox
+   - API integration testing
+   - Performance testing scenarios
+   - Accessibility testing compliance
+
+2. CI/CD pipelines using GitHub Actions:
+   - Automated testing on pull requests
+   - Build and deployment automation
+   - Environment-specific configurations
+   - Database migration automation
+   - Security scanning integration
+
+3. Production deployment:
+   - Docker containerization
+   - Environment configuration management
+   - Database backup and recovery procedures
+   - SSL certificate setup
+   - CDN configuration for static assets
+
+4. Monitoring infrastructure:
+   - Application performance monitoring
+   - Error tracking and alerting
+   - System health dashboards
+   - User analytics and behavior tracking
+   - Security monitoring and alerts
+
+5. Security audit checklist:
+   - OWASP security testing
+   - Penetration testing procedures
+   - Data encryption validation
+   - Access control verification
+   - Compliance checking (GDPR, etc.)
+
+Create deployment documentation and operation runbooks.
+```
+
+**Testing Required:** ✅ Full system integration test across all platforms and environments
+**Git Commit:** `git commit -m "feat: complete final integration, testing, and deployment setup"`
+
+---
+
+## Summary of Implementation
+
+### Total Implementation Breakdown:
+- **200 Sub-steps** (40 steps × 5 sub-steps each)
+- **40 Testing Checkpoints** with specific test requirements
+- **40 Git Commits** with descriptive commit messages
+- **40 Detailed Cursor Prompts** for AI-assisted development
+
+### Key Features Implemented:
+1. **Multi-tenant Architecture** with complete data isolation
+2. **Comprehensive RBAC System** with 6-level hierarchy
+3. **Full-Stack Implementation** across React, Angular, and React Native
+4. **Advanced Analytics** with real-time dashboards
+5. **Security-First Approach** with 2FA, audit logging, and security monitoring
+6. **Performance Optimization** with caching and monitoring
+7. **Complete Testing Coverage** including unit, integration, and E2E tests
+8. **Production-Ready Deployment** with CI/CD and monitoring
+
+### Technology Stack Used:
+- **Backend**: Node.js, Express, Prisma, MySQL, Redis, JWT
+- **React**: Redux Toolkit, Material-UI, React Hook Form, Chart.js
+- **Angular**: NgRx, Angular Material, Reactive Forms, ng2-charts
+- **React Native**: Expo, NativeBase, React Navigation, AsyncStorage
+- **Testing**: Jest, Playwright, Detox, MSW
+- **DevOps**: Docker, GitHub Actions, monitoring tools
+
+### Free Tools & Services:
+- All development tools and libraries used are free/open source
+- Deployment options include free tiers of cloud services
+- Monitoring and analytics use free tier services
+- Email and SMS services use free tier providers
+
+This comprehensive guide provides a complete roadmap for building a production-ready multi-tenant RBAC application using modern technologies and AI-assisted development with Cursor.

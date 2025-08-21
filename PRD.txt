@@ -1,0 +1,546 @@
+# Multi-Tenant RBAC Application - Product Requirements Document
+
+## 1. Project Overview
+
+### 1.1 Project Summary
+A comprehensive multi-tenant application with Role-Based Access Control (RBAC) supporting Angular, React, and React Native clients with a unified MySQL backend.
+
+### 1.2 Tech Stack
+**Frontend Frameworks:**
+- Angular 17+ (with Standalone Components)
+- React 18+ (with TypeScript)
+- React Native 0.73+ (with Expo SDK 50+)
+
+**State Management & Data Fetching:**
+- Redux Toolkit (RTK) + RTK Query (React/React Native)
+- NgRx + NgRx Data (Angular)
+- TanStack Query v5 (React fallback option)
+
+**Backend:**
+- Node.js 20+ with Express.js
+- MySQL 8.0+ with Prisma ORM
+- JWT Authentication with refresh tokens
+
+**Free Tools & Libraries:**
+- Vite (React build tool)
+- Angular CLI
+- Expo CLI (React Native)
+- Material-UI v5 (React)
+- Angular Material 17+
+- NativeBase/Tamagui (React Native)
+- React Hook Form + Yup validation
+- Angular Reactive Forms
+- Socket.io (real-time features)
+
+## 2. Core Features & Requirements
+
+### 2.1 Multi-Tenancy Architecture
+
+**Tenant Isolation:**
+- Database-per-tenant approach using Prisma schema isolation
+- Subdomain-based tenant resolution (`tenant1.yourapp.com`)
+- Tenant-specific theming and branding
+- Data segregation at database level
+- Tenant-specific configurations
+
+**Tenant Management:**
+- Tenant registration and onboarding flow
+- Tenant subscription management
+- Custom domain mapping
+- Tenant analytics dashboard
+- Tenant settings and preferences
+
+### 2.2 Role-Based Access Control (RBAC)
+
+**Role Hierarchy:**
+```
+Super Admin (Cross-tenant)
+├── Tenant Admin
+│   ├── Manager
+│   │   ├── Supervisor
+│   │   │   ├── Employee
+│   │   │   └── Guest/Viewer
+```
+
+**Permission System:**
+- Resource-based permissions (Create, Read, Update, Delete, Execute)
+- Feature-level access control
+- Route-level protection
+- Component-level rendering permissions
+- API endpoint authorization
+- Dynamic permission assignment
+- Permission inheritance
+
+**User Management:**
+- User invitation system
+- Multi-role assignment per user
+- Role switching interface
+- User deactivation/reactivation
+- Password policies and enforcement
+- Two-factor authentication (2FA)
+
+### 2.3 Admin Panel Features
+
+**Dashboard:**
+- Tenant-specific KPI widgets
+- Real-time analytics charts
+- Activity feeds
+- System health monitoring
+- Custom dashboard builder
+
+**User Management:**
+- User CRUD operations
+- Bulk user operations
+- User search and filtering
+- User activity logs
+- Profile management
+- Avatar upload and management
+
+**Role & Permission Management:**
+- Role creation and editing
+- Permission matrix interface
+- Role assignment bulk operations
+- Permission testing interface
+- Role templates and presets
+
+**Content Management:**
+- File upload and management
+- Image optimization and resizing
+- Document versioning
+- Content approval workflows
+- SEO metadata management
+
+**System Settings:**
+- Tenant configuration
+- Email templates
+- Notification settings
+- Integration configurations
+- Backup and restore options
+
+### 2.4 Advanced Features
+
+**Search & Filtering:**
+- Global search across all entities
+- Advanced filter builder
+- Saved search queries
+- Search suggestions and autocomplete
+- Full-text search implementation
+
+**Data Export/Import:**
+- CSV/Excel export functionality
+- Bulk data import with validation
+- Data mapping interface
+- Import error handling and reporting
+- Scheduled exports
+
+**Audit & Logging:**
+- Comprehensive audit trails
+- User activity tracking
+- System event logging
+- Log retention policies
+- Log analysis and reporting
+
+**Notifications:**
+- In-app notifications
+- Email notifications
+- Push notifications (mobile)
+- Notification preferences
+- Notification history
+
+## 3. Technical Implementation Details
+
+### 3.1 Database Schema (MySQL + Prisma)
+
+**Core Tables:**
+```sql
+-- Tenants
+tenants (id, name, slug, domain, status, settings, created_at, updated_at)
+
+-- Users (multi-tenant)
+users (id, tenant_id, email, password, first_name, last_name, status, last_login, created_at, updated_at)
+
+-- Roles
+roles (id, tenant_id, name, description, permissions, is_default, created_at, updated_at)
+
+-- User Roles (many-to-many)
+user_roles (user_id, role_id, assigned_by, assigned_at)
+
+-- Permissions
+permissions (id, resource, action, description)
+
+-- Role Permissions
+role_permissions (role_id, permission_id)
+
+-- Audit Logs
+audit_logs (id, tenant_id, user_id, action, resource, old_values, new_values, ip_address, user_agent, created_at)
+
+-- Sessions
+sessions (id, user_id, token, refresh_token, expires_at, created_at)
+```
+
+### 3.2 API Architecture
+
+**RESTful Endpoints:**
+```
+# Authentication
+POST /api/auth/login
+POST /api/auth/register
+POST /api/auth/refresh
+POST /api/auth/logout
+POST /api/auth/forgot-password
+POST /api/auth/reset-password
+
+# Tenant Management
+GET /api/tenants
+POST /api/tenants
+PUT /api/tenants/:id
+DELETE /api/tenants/:id
+
+# User Management
+GET /api/users
+POST /api/users
+PUT /api/users/:id
+DELETE /api/users/:id
+POST /api/users/invite
+POST /api/users/bulk-import
+
+# Roles & Permissions
+GET /api/roles
+POST /api/roles
+PUT /api/roles/:id
+DELETE /api/roles/:id
+GET /api/permissions
+POST /api/users/:id/roles
+
+# File Management
+POST /api/files/upload
+GET /api/files/:id
+DELETE /api/files/:id
+
+# Search
+GET /api/search?q=query&type=users&filters={}
+
+# Analytics
+GET /api/analytics/dashboard
+GET /api/analytics/users
+GET /api/analytics/activity
+```
+
+### 3.3 Frontend Architecture
+
+**React Implementation:**
+```typescript
+// Store Structure (Redux Toolkit)
+interface RootState {
+  auth: AuthState;
+  tenant: TenantState;
+  users: UsersState;
+  roles: RolesState;
+  ui: UIState;
+  notifications: NotificationsState;
+}
+
+// RTK Query API Slices
+const authApi = createApi({
+  reducerPath: 'authApi',
+  baseQuery: fetchBaseQuery({
+    baseUrl: '/api/auth',
+    prepareHeaders: (headers, { getState }) => {
+      const token = (getState() as RootState).auth.token;
+      if (token) headers.set('authorization', `Bearer ${token}`);
+      return headers;
+    },
+  }),
+  endpoints: (builder) => ({
+    login: builder.mutation<LoginResponse, LoginRequest>({
+      query: (credentials) => ({
+        url: 'login',
+        method: 'POST',
+        body: credentials,
+      }),
+    }),
+  }),
+});
+```
+
+**Component Structure:**
+```
+src/
+├── components/
+│   ├── common/
+│   │   ├── DataTable/
+│   │   ├── SearchInput/
+│   │   ├── PermissionGate/
+│   │   └── ErrorBoundary/
+│   ├── auth/
+│   ├── users/
+│   ├── roles/
+│   └── dashboard/
+├── hooks/
+│   ├── useAuth.ts
+│   ├── usePermissions.ts
+│   ├── useSearch.ts
+│   └── useTenant.ts
+├── store/
+│   ├── slices/
+│   └── api/
+├── utils/
+│   ├── permissions.ts
+│   ├── validation.ts
+│   └── constants.ts
+└── types/
+    └── api.ts
+```
+
+## 4. Error Handling & Edge Cases
+
+### 4.1 Authentication Errors
+- Invalid credentials handling
+- Token expiration with automatic refresh
+- Session timeout warnings
+- Concurrent login prevention
+- Account lockout after failed attempts
+
+### 4.2 Authorization Errors
+- Insufficient permissions graceful degradation
+- Role change real-time updates
+- Permission escalation prevention
+- Cross-tenant access blocking
+
+### 4.3 Data Validation
+- Client-side and server-side validation
+- SQL injection prevention
+- XSS protection
+- File upload security
+- Input sanitization
+
+### 4.4 Network & Performance
+- Offline mode handling
+- Request retry mechanisms
+- Loading states and skeletons
+- Infinite scrolling pagination
+- Debounced search inputs
+- Image lazy loading
+- Cache invalidation strategies
+
+### 4.5 Tenant-Specific Errors
+- Tenant not found handling
+- Suspended tenant access
+- Tenant data isolation verification
+- Resource quota enforcement
+
+## 5. Search, Sort & Filter Implementation
+
+### 5.1 Advanced Search Features
+```typescript
+interface SearchFilters {
+  query: string;
+  dateRange: { start: Date; end: Date };
+  status: string[];
+  roles: string[];
+  departments: string[];
+  customFields: Record<string, any>;
+}
+
+interface SortOptions {
+  field: string;
+  direction: 'asc' | 'desc';
+  secondary?: { field: string; direction: 'asc' | 'desc' };
+}
+```
+
+### 5.2 Filter Components
+- Multi-select dropdowns
+- Date range pickers
+- Number range sliders
+- Boolean toggles
+- Custom field filters
+- Saved filter presets
+
+### 5.3 Sorting Features
+- Column header sorting
+- Multi-column sorting
+- Custom sort functions
+- Sort persistence
+- Default sort orders
+
+## 6. Implementation Phases for Cursor
+
+### Phase 1: Project Setup & Architecture (Week 1-2)
+1. **Backend Setup**
+   ```bash
+   # Initialize Node.js project
+   npm init -y
+   npm install express prisma mysql2 jsonwebtoken bcryptjs
+   npx prisma init
+   ```
+
+2. **Database Schema Creation**
+   - Create Prisma schema
+   - Generate migrations
+   - Seed initial data
+
+3. **Frontend Project Setup**
+   ```bash
+   # React Setup
+   npm create vite@latest admin-panel-react -- --template react-ts
+   cd admin-panel-react
+   npm install @reduxjs/toolkit react-redux @mui/material
+   
+   # Angular Setup
+   ng new admin-panel-angular --routing --style=scss
+   cd admin-panel-angular
+   ng add @angular/material @ngrx/store @ngrx/effects
+   
+   # React Native Setup
+   npx create-expo-app admin-panel-mobile --template
+   ```
+
+### Phase 2: Authentication & RBAC Core (Week 3-4)
+1. **JWT Authentication System**
+   - Login/logout endpoints
+   - Token refresh mechanism
+   - Password reset flow
+
+2. **RBAC Implementation**
+   - Permission checking middleware
+   - Role-based route protection
+   - Dynamic menu generation
+
+3. **Multi-tenancy Setup**
+   - Tenant resolution middleware
+   - Database connection per tenant
+   - Tenant-aware queries
+
+### Phase 3: Admin Panel Features (Week 5-8)
+1. **User Management**
+   - CRUD operations
+   - Search and filtering
+   - Bulk operations
+   - User invitation system
+
+2. **Role Management**
+   - Role CRUD operations
+   - Permission assignment
+   - Role templates
+
+3. **Dashboard & Analytics**
+   - KPI widgets
+   - Charts and graphs
+   - Real-time updates
+
+### Phase 4: Advanced Features (Week 9-12)
+1. **File Management**
+   - Upload functionality
+   - Image optimization
+   - File organization
+
+2. **Audit System**
+   - Activity logging
+   - Audit trail viewer
+   - Report generation
+
+3. **Notifications**
+   - In-app notifications
+   - Email integration
+   - Push notifications
+
+### Phase 5: Testing & Deployment (Week 13-14)
+1. **Testing Suite**
+   - Unit tests (Jest)
+   - Integration tests
+   - E2E tests (Playwright)
+
+2. **Performance Optimization**
+   - Code splitting
+   - Image optimization
+   - Caching strategies
+
+3. **Deployment Setup**
+   - Docker containers
+   - Environment configurations
+   - CI/CD pipelines
+
+## 7. Free Tools & Services
+
+### Development Tools
+- **Code Editor**: Cursor AI with GitHub Copilot free tier
+- **Version Control**: GitHub (free tier)
+- **Database**: MySQL Community Server
+- **API Testing**: Postman (free tier) / Thunder Client (VS Code)
+- **Design**: Figma (free tier)
+
+### Deployment & Hosting
+- **Backend**: Railway.app (free tier) / Render (free tier)
+- **Database**: PlanetScale (free tier) / Railway MySQL
+- **Frontend**: Vercel (free tier) / Netlify (free tier)
+- **File Storage**: Cloudinary (free tier)
+- **Email**: Resend (free tier) / EmailJS
+
+### Monitoring & Analytics
+- **Error Tracking**: Sentry (free tier)
+- **Analytics**: Google Analytics 4
+- **Performance**: Web Vitals
+- **Uptime Monitoring**: UptimeRobot (free tier)
+
+## 8. Security Considerations
+
+### 8.1 Authentication Security
+- BCrypt for password hashing
+- JWT with short expiration times
+- Refresh token rotation
+- Rate limiting on auth endpoints
+- Account lockout policies
+
+### 8.2 Data Protection
+- Input validation and sanitization
+- SQL injection prevention with Prisma
+- XSS protection headers
+- CSRF tokens
+- File upload security
+
+### 8.3 Multi-tenant Security
+- Tenant data isolation
+- Cross-tenant access prevention
+- Subdomain validation
+- Resource quota enforcement
+
+## 9. Performance Optimization
+
+### 9.1 Frontend Optimization
+- Code splitting and lazy loading
+- Image optimization and lazy loading
+- Virtual scrolling for large lists
+- Debounced search inputs
+- Memoization of expensive computations
+
+### 9.2 Backend Optimization
+- Database indexing strategy
+- Query optimization
+- Redis caching (free tier)
+- Connection pooling
+- Response compression
+
+### 9.3 Mobile Optimization
+- Expo optimization techniques
+- Image caching
+- Offline-first approach
+- Background sync
+
+## 10. Accessibility & Internationalization
+
+### 10.1 Accessibility (a11y)
+- WCAG 2.1 compliance
+- Keyboard navigation
+- Screen reader support
+- High contrast themes
+- Focus management
+
+### 10.2 Internationalization (i18n)
+- Multi-language support
+- RTL language support
+- Date/time localization
+- Number formatting
+- Currency support
+
+This PRD provides a comprehensive foundation for building a production-ready multi-tenant RBAC application using modern, free tools and libraries. Each phase is designed to be implemented step-by-step with Cursor AI assistance.

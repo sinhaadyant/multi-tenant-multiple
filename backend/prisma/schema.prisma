@@ -1,0 +1,253 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+// Tenant model for multi-tenancy
+model Tenant {
+  id        String   @id @default(cuid())
+  name      String
+  slug      String   @unique
+  domain    String?  @unique
+  status    TenantStatus @default(ACTIVE)
+  settings  Json?    // Store tenant-specific configurations
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  users     User[]
+  roles     Role[]
+  auditLogs AuditLog[]
+
+  @@map("tenants")
+}
+
+// User model with multi-tenant support
+model User {
+  id        String   @id @default(cuid())
+  tenantId  String
+  email     String   
+  password  String
+  firstName String?
+  lastName  String?
+  avatar    String?
+  status    UserStatus @default(ACTIVE)
+  lastLogin DateTime?
+  emailVerified Boolean @default(false)
+  emailVerificationToken String?
+  passwordResetToken String?
+  passwordResetExpires DateTime?
+  twoFactorSecret String?
+  twoFactorEnabled Boolean @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  tenant    Tenant     @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  userRoles UserRole[]
+  sessions  Session[]
+  auditLogs AuditLog[]
+  createdUsers User[] @relation("UserCreatedBy")
+  createdBy User? @relation("UserCreatedBy", fields: [createdById], references: [id])
+  createdById String?
+
+  @@unique([email, tenantId])
+  @@index([tenantId])
+  @@index([email])
+  @@map("users")
+}
+
+// Role model with tenant isolation
+model Role {
+  id          String   @id @default(cuid())
+  tenantId    String
+  name        String
+  description String?
+  permissions Json     // Store permissions as JSON array
+  isDefault   Boolean  @default(false)
+  isSystem    Boolean  @default(false) // System roles cannot be deleted
+  hierarchy   Int      @default(0) // Role hierarchy level (0 = highest)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  tenant       Tenant         @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  userRoles    UserRole[]
+  rolePermissions RolePermission[]
+
+  @@unique([name, tenantId])
+  @@index([tenantId])
+  @@map("roles")
+}
+
+// Permission model for granular access control
+model Permission {
+  id          String   @id @default(cuid())
+  resource    String   // e.g., "users", "roles", "tenants"
+  action      String   // e.g., "create", "read", "update", "delete", "manage"
+  description String?
+  category    String?  // For grouping permissions in UI
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  rolePermissions RolePermission[]
+
+  @@unique([resource, action])
+  @@index([resource])
+  @@map("permissions")
+}
+
+// Many-to-many relationship between User and Role
+model UserRole {
+  id         String   @id @default(cuid())
+  userId     String
+  roleId     String
+  assignedBy String?  // User ID who assigned this role
+  assignedAt DateTime @default(now())
+  expiresAt  DateTime? // Optional expiration date
+  isActive   Boolean  @default(true)
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role Role @relation(fields: [roleId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, roleId])
+  @@index([userId])
+  @@index([roleId])
+  @@map("user_roles")
+}
+
+// Many-to-many relationship between Role and Permission
+model RolePermission {
+  id           String @id @default(cuid())
+  roleId       String
+  permissionId String
+
+  // Relations
+  role       Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  permission Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  @@unique([roleId, permissionId])
+  @@index([roleId])
+  @@index([permissionId])
+  @@map("role_permissions")
+}
+
+// Session model for JWT token management
+model Session {
+  id           String   @id @default(cuid())
+  userId       String
+  token        String   @unique
+  refreshToken String   @unique
+  expiresAt    DateTime
+  deviceInfo   Json?    // Store device and browser information
+  ipAddress    String?
+  isRevoked    Boolean  @default(false)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([token])
+  @@index([refreshToken])
+  @@map("sessions")
+}
+
+// Audit log model for tracking all user activities
+model AuditLog {
+  id         String   @id @default(cuid())
+  tenantId   String
+  userId     String?
+  action     String   // e.g., "CREATE_USER", "UPDATE_ROLE", "LOGIN"
+  resource   String   // e.g., "users", "roles", "sessions"
+  resourceId String?  // ID of the affected resource
+  oldValues  Json?    // Previous state of the resource
+  newValues  Json?    // New state of the resource
+  ipAddress  String?
+  userAgent  String?
+  metadata   Json?    // Additional context data
+  createdAt  DateTime @default(now())
+
+  // Relations
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  user   User?  @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([tenantId])
+  @@index([userId])
+  @@index([action])
+  @@index([resource])
+  @@index([createdAt])
+  @@map("audit_logs")
+}
+
+// File model for managing uploaded files
+model File {
+  id          String   @id @default(cuid())
+  tenantId    String?  // Optional tenant association
+  filename    String
+  originalName String
+  mimeType    String
+  size        Int
+  path        String
+  url         String?
+  uploadedBy  String?
+  isPublic    Boolean  @default(false)
+  metadata    Json?    // Additional file metadata
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([tenantId])
+  @@index([uploadedBy])
+  @@map("files")
+}
+
+// Notification model for in-app notifications
+model Notification {
+  id        String   @id @default(cuid())
+  tenantId  String?
+  userId    String?
+  title     String
+  message   String
+  type      NotificationType @default(INFO)
+  isRead    Boolean  @default(false)
+  data      Json?    // Additional notification data
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([tenantId])
+  @@index([userId])
+  @@index([isRead])
+  @@map("notifications")
+}
+
+// Enums
+enum TenantStatus {
+  ACTIVE
+  INACTIVE
+  SUSPENDED
+}
+
+enum UserStatus {
+  ACTIVE
+  INACTIVE
+  SUSPENDED
+  PENDING_VERIFICATION
+}
+
+enum NotificationType {
+  INFO
+  SUCCESS
+  WARNING
+  ERROR
+  SYSTEM
+}

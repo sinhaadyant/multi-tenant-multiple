@@ -24,17 +24,19 @@ const LoginCustom = () => {
   const [password, setPassword] = useState("");
   const [rememberMe, setRememberMe] = useState(false);
   const [showAlert, setShowAlert] = useState(false);
-  
+
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const { isLoading, error, isAuthenticated } = useSelector((state) => state.auth);
-  
+  const { isLoading, error, isAuthenticated } = useSelector(
+    (state) => state.auth
+  );
+
   // API call function
   const callLoginAPI = async (credentials) => {
-    const response = await fetch('http://localhost:3000/api/auth/login', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(credentials)
+    const response = await fetch("http://localhost:3000/api/auth/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(credentials),
     });
     return await response.json();
   };
@@ -55,7 +57,7 @@ const LoginCustom = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     if (!email || !password) {
       dispatch(setError("Please fill in all fields"));
       return;
@@ -72,13 +74,15 @@ const LoginCustom = () => {
 
       if (result.success) {
         // Dispatch success action to store auth data
-        dispatch(loginSuccess({
-          user: result.data.user,
-          tenant: result.data.tenant,
-          tokens: result.data.tokens,
-          roles: result.data.roles,
-          permissions: result.data.permissions,
-        }));
+        dispatch(
+          loginSuccess({
+            user: result.data.user,
+            tenant: result.data.tenant,
+            tokens: result.data.tokens,
+            roles: result.data.roles,
+            permissions: result.data.permissions,
+          })
+        );
 
         navigate("/admin/index");
       } else {
@@ -104,7 +108,7 @@ const LoginCustom = () => {
                 <strong>Error!</strong> {error}
               </Alert>
             )}
-            
+
             <Form role="form" onSubmit={handleSubmit}>
               <FormGroup className="mb-3">
                 <InputGroup className="input-group-alternative">
@@ -149,14 +153,17 @@ const LoginCustom = () => {
                   onChange={(e) => setRememberMe(e.target.checked)}
                   disabled={isLoading}
                 />
-                <label className="custom-control-label" htmlFor="customCheckLogin">
+                <label
+                  className="custom-control-label"
+                  htmlFor="customCheckLogin"
+                >
                   <span className="text-muted">Remember me</span>
                 </label>
               </div>
               <div className="text-center">
-                <Button 
-                  className="my-4" 
-                  color="primary" 
+                <Button
+                  className="my-4"
+                  color="primary"
                   type="submit"
                   disabled={isLoading}
                 >
@@ -168,18 +175,12 @@ const LoginCustom = () => {
         </Card>
         <Row className="mt-3">
           <Col xs="6">
-            <Link
-              className="text-light"
-              to="/auth/forgot-password"
-            >
+            <Link className="text-light" to="/auth/forgot-password">
               <small>Forgot password?</small>
             </Link>
           </Col>
           <Col className="text-right" xs="6">
-            <Link
-              className="text-light"
-              to="/auth/register"
-            >
+            <Link className="text-light" to="/auth/register">
               <small>Create new account</small>
             </Link>
           </Col>

@@ -1,5 +1,5 @@
-import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { AuthState, User, Tenant, AuthTokens } from '../../types/auth';
+import { createSlice, PayloadAction } from "@reduxjs/toolkit";
+import { AuthState, User, Tenant, AuthTokens } from "../../types/auth";
 
 const initialState: AuthState = {
   user: null,
@@ -15,11 +15,11 @@ const initialState: AuthState = {
 // Try to load from localStorage on initialization
 const loadStoredAuth = (): Partial<AuthState> => {
   try {
-    const storedTokens = localStorage.getItem('tokens');
-    const storedUser = localStorage.getItem('user');
-    const storedTenant = localStorage.getItem('tenant');
-    const storedRoles = localStorage.getItem('roles');
-    const storedPermissions = localStorage.getItem('permissions');
+    const storedTokens = localStorage.getItem("tokens");
+    const storedUser = localStorage.getItem("user");
+    const storedTenant = localStorage.getItem("tenant");
+    const storedRoles = localStorage.getItem("roles");
+    const storedPermissions = localStorage.getItem("permissions");
 
     if (storedTokens && storedUser) {
       return {
@@ -32,19 +32,19 @@ const loadStoredAuth = (): Partial<AuthState> => {
       };
     }
   } catch (error) {
-    console.error('Failed to load stored auth data:', error);
+    console.error("Failed to load stored auth data:", error);
     // Clear corrupted data
-    localStorage.removeItem('tokens');
-    localStorage.removeItem('user');
-    localStorage.removeItem('tenant');
-    localStorage.removeItem('roles');
-    localStorage.removeItem('permissions');
+    localStorage.removeItem("tokens");
+    localStorage.removeItem("user");
+    localStorage.removeItem("tenant");
+    localStorage.removeItem("roles");
+    localStorage.removeItem("permissions");
   }
   return {};
 };
 
 const authSlice = createSlice({
-  name: 'auth',
+  name: "auth",
   initialState: {
     ...initialState,
     ...loadStoredAuth(),
@@ -56,15 +56,18 @@ const authSlice = createSlice({
     setError: (state, action: PayloadAction<string | null>) => {
       state.error = action.payload;
     },
-    loginSuccess: (state, action: PayloadAction<{
-      user: User;
-      tenant: Tenant;
-      tokens: AuthTokens;
-      roles: string[];
-      permissions: string[];
-    }>) => {
+    loginSuccess: (
+      state,
+      action: PayloadAction<{
+        user: User;
+        tenant: Tenant;
+        tokens: AuthTokens;
+        roles: string[];
+        permissions: string[];
+      }>
+    ) => {
       const { user, tenant, tokens, roles, permissions } = action.payload;
-      
+
       state.user = user;
       state.tenant = tenant;
       state.tokens = tokens;
@@ -75,11 +78,11 @@ const authSlice = createSlice({
       state.error = null;
 
       // Store in localStorage
-      localStorage.setItem('tokens', JSON.stringify(tokens));
-      localStorage.setItem('user', JSON.stringify(user));
-      localStorage.setItem('tenant', JSON.stringify(tenant));
-      localStorage.setItem('roles', JSON.stringify(roles));
-      localStorage.setItem('permissions', JSON.stringify(permissions));
+      localStorage.setItem("tokens", JSON.stringify(tokens));
+      localStorage.setItem("user", JSON.stringify(user));
+      localStorage.setItem("tenant", JSON.stringify(tenant));
+      localStorage.setItem("roles", JSON.stringify(roles));
+      localStorage.setItem("permissions", JSON.stringify(permissions));
     },
     logout: (state) => {
       state.user = null;
@@ -92,20 +95,20 @@ const authSlice = createSlice({
       state.error = null;
 
       // Clear localStorage
-      localStorage.removeItem('tokens');
-      localStorage.removeItem('user');
-      localStorage.removeItem('tenant');
-      localStorage.removeItem('roles');
-      localStorage.removeItem('permissions');
+      localStorage.removeItem("tokens");
+      localStorage.removeItem("user");
+      localStorage.removeItem("tenant");
+      localStorage.removeItem("roles");
+      localStorage.removeItem("permissions");
     },
     updateTokens: (state, action: PayloadAction<AuthTokens>) => {
       state.tokens = action.payload;
-      localStorage.setItem('tokens', JSON.stringify(action.payload));
+      localStorage.setItem("tokens", JSON.stringify(action.payload));
     },
     updateUser: (state, action: PayloadAction<Partial<User>>) => {
       if (state.user) {
         state.user = { ...state.user, ...action.payload };
-        localStorage.setItem('user', JSON.stringify(state.user));
+        localStorage.setItem("user", JSON.stringify(state.user));
       }
     },
     clearError: (state) => {
@@ -130,6 +133,8 @@ export default authSlice.reducer;
 export const selectAuth = (state: { auth: AuthState }) => state.auth;
 export const selectUser = (state: { auth: AuthState }) => state.auth.user;
 export const selectTenant = (state: { auth: AuthState }) => state.auth.tenant;
-export const selectIsAuthenticated = (state: { auth: AuthState }) => state.auth.isAuthenticated;
+export const selectIsAuthenticated = (state: { auth: AuthState }) =>
+  state.auth.isAuthenticated;
 export const selectUserRoles = (state: { auth: AuthState }) => state.auth.roles;
-export const selectUserPermissions = (state: { auth: AuthState }) => state.auth.permissions;
+export const selectUserPermissions = (state: { auth: AuthState }) =>
+  state.auth.permissions;

@@ -11,6 +11,8 @@ import {
   verifyEmail,
   getProfile,
   healthCheck,
+  createInvitation,
+  acceptInvitation,
   loginValidation,
   registerValidation,
   refreshTokenValidation,
@@ -18,6 +20,8 @@ import {
   resetPasswordValidation,
   changePasswordValidation,
   verifyEmailValidation,
+  createInvitationValidation,
+  acceptInvitationValidation,
 } from "../controllers/authController";
 import { authenticate, optionalAuth } from "../middleware/auth";
 import {
@@ -191,6 +195,34 @@ router.get(
  * @rateLimit General (100 requests per 15 minutes)
  */
 router.get("/me", generalRateLimit, resolveTenant, authenticate, getProfile);
+
+/**
+ * @route   POST /api/auth/invite
+ * @desc    Create user invitation
+ * @access  Private (requires users:create permission)
+ * @rateLimit Moderate (10 attempts per 15 minutes)
+ */
+router.post(
+  "/invite",
+  moderateRateLimit,
+  resolveTenant,
+  authenticate,
+  createInvitationValidation,
+  createInvitation
+);
+
+/**
+ * @route   POST /api/auth/accept-invitation
+ * @desc    Accept invitation and complete registration
+ * @access  Public
+ * @rateLimit Moderate (10 attempts per 15 minutes)
+ */
+router.post(
+  "/accept-invitation",
+  moderateRateLimit,
+  acceptInvitationValidation,
+  acceptInvitation
+);
 
 // Export the router
 export default router;

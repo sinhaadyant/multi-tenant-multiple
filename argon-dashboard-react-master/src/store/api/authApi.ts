@@ -89,6 +89,26 @@ export const authApi = createApi({
         body: { currentPassword, newPassword },
       }),
     }),
+    createInvitation: builder.mutation<
+      { message: string },
+      { email: string; roleId: string }
+    >({
+      query: ({ email, roleId }) => ({
+        url: "/invite",
+        method: "POST",
+        body: { email, roleId },
+      }),
+    }),
+    acceptInvitation: builder.mutation<
+      RegisterResponse,
+      { token: string; password: string; firstName?: string; lastName?: string }
+    >({
+      query: ({ token, password, firstName, lastName }) => ({
+        url: "/accept-invitation",
+        method: "POST",
+        body: { token, password, firstName, lastName },
+      }),
+    }),
   }),
 });
 
@@ -101,4 +121,6 @@ export const {
   useForgotPasswordMutation,
   useResetPasswordMutation,
   useChangePasswordMutation,
+  useCreateInvitationMutation,
+  useAcceptInvitationMutation,
 } = authApi;

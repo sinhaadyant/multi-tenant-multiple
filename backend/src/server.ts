@@ -49,7 +49,7 @@ app.get("/health", (req, res) => {
 });
 
 // Import routes
-import authRoutes from "./routes/authRoutes";
+import authRoutes from "./routes/authRoutesSimple";
 
 // API routes
 app.use("/api/auth", authRoutes);

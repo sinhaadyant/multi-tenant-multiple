@@ -74,9 +74,9 @@ export const validatePasswordStrength = (
     score = Math.max(0, score - 1);
   }
 
-  // Sequential characters check
-  if (/123|abc|qwe/i.test(password)) {
-    feedback.push("Password should not contain sequential characters");
+  // Sequential characters check (make it less strict)
+  if (/123456|abcdef|qwerty/i.test(password)) {
+    feedback.push("Password should not contain obvious sequential characters");
     score = Math.max(0, score - 1);
   }
 

@@ -19,6 +19,7 @@ import Index from "views/Index.js";
 import Profile from "views/examples/Profile.js";
 import Maps from "views/examples/Maps.js";
 import Register from "views/examples/Register.js";
+import RegisterCustom from "views/examples/RegisterCustom.js";
 import Login from "views/examples/Login.js";
 import LoginCustom from "views/examples/LoginCustom.js";
 import Tables from "views/examples/Tables.js";
@@ -85,7 +86,14 @@ var routes = [
     path: "/register",
     name: "Register",
     icon: "ni ni-circle-08 text-pink",
-    component: <Register />,
+    component: <RegisterCustom />,
+    layout: "/auth",
+  },
+  {
+    path: "/accept-invitation",
+    name: "Accept Invitation",
+    icon: "ni ni-email-83 text-blue",
+    component: <RegisterCustom />,
     layout: "/auth",
   },
 ];

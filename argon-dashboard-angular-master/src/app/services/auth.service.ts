@@ -63,6 +63,22 @@ export class AuthService {
       );
   }
 
+  register(userData: any): Observable<any> {
+    return this.http.post<any>(`${this.API_URL}/register`, userData);
+  }
+
+  acceptInvitation(invitationData: any): Observable<any> {
+    return this.http.post<any>(`${this.API_URL}/accept-invitation`, invitationData);
+  }
+
+  createInvitation(email: string, roleId: string): Observable<any> {
+    return this.http.post<any>(`${this.API_URL}/invite`, { email, roleId });
+  }
+
+  verifyEmail(token: string): Observable<any> {
+    return this.http.post<any>(`${this.API_URL}/verify-email`, { token });
+  }
+
   getProfile(): Observable<any> {
     return this.http.get(`${this.API_URL}/profile`);
   }

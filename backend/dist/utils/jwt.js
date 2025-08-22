@@ -12,12 +12,12 @@ const crypto_1 = __importDefault(require("crypto"));
 const generateAccessToken = (payload) => {
     const tokenPayload = {
         ...payload,
-        type: 'access',
+        type: "access",
     };
     return jsonwebtoken_1.default.sign(tokenPayload, process.env.JWT_SECRET, {
-        expiresIn: process.env.JWT_EXPIRES_IN || '15m',
-        issuer: 'multi-tenant-rbac',
-        audience: 'multi-tenant-app',
+        expiresIn: process.env.JWT_EXPIRES_IN || "15m",
+        issuer: "multi-tenant-rbac",
+        audience: "multi-tenant-app",
     });
 };
 exports.generateAccessToken = generateAccessToken;
@@ -27,12 +27,12 @@ exports.generateAccessToken = generateAccessToken;
 const generateRefreshToken = (payload) => {
     const tokenPayload = {
         ...payload,
-        type: 'refresh',
+        type: "refresh",
     };
     return jsonwebtoken_1.default.sign(tokenPayload, process.env.JWT_REFRESH_SECRET, {
-        expiresIn: process.env.JWT_REFRESH_EXPIRES_IN || '7d',
-        issuer: 'multi-tenant-rbac',
-        audience: 'multi-tenant-app',
+        expiresIn: process.env.JWT_REFRESH_EXPIRES_IN || "7d",
+        issuer: "multi-tenant-rbac",
+        audience: "multi-tenant-app",
     });
 };
 exports.generateRefreshToken = generateRefreshToken;
@@ -43,19 +43,19 @@ const generateTokenPair = (payload) => {
     const accessToken = (0, exports.generateAccessToken)(payload);
     const refreshToken = (0, exports.generateRefreshToken)(payload);
     // Calculate expiration time
-    const expiresIn = process.env.JWT_EXPIRES_IN || '15m';
+    const expiresIn = process.env.JWT_EXPIRES_IN || "15m";
     const expiresAt = new Date();
     // Parse expiration time (supports formats like '15m', '1h', '7d')
     const timeValue = parseInt(expiresIn.slice(0, -1));
     const timeUnit = expiresIn.slice(-1);
     switch (timeUnit) {
-        case 'm':
+        case "m":
             expiresAt.setMinutes(expiresAt.getMinutes() + timeValue);
             break;
-        case 'h':
+        case "h":
             expiresAt.setHours(expiresAt.getHours() + timeValue);
             break;
-        case 'd':
+        case "d":
             expiresAt.setDate(expiresAt.getDate() + timeValue);
             break;
         default:
@@ -72,23 +72,25 @@ exports.generateTokenPair = generateTokenPair;
  * Verify JWT token
  */
 const verifyToken = (token, isRefreshToken = false) => {
-    const secret = isRefreshToken ? process.env.JWT_REFRESH_SECRET : process.env.JWT_SECRET;
+    const secret = isRefreshToken
+        ? process.env.JWT_REFRESH_SECRET
+        : process.env.JWT_SECRET;
     try {
         const decoded = jsonwebtoken_1.default.verify(token, secret, {
-            issuer: 'multi-tenant-rbac',
-            audience: 'multi-tenant-app',
+            issuer: "multi-tenant-rbac",
+            audience: "multi-tenant-app",
         });
         return decoded;
     }
     catch (error) {
         if (error instanceof jsonwebtoken_1.default.TokenExpiredError) {
-            throw new Error('Token has expired');
+            throw new Error("Token has expired");
         }
         else if (error instanceof jsonwebtoken_1.default.JsonWebTokenError) {
-            throw new Error('Invalid token');
+            throw new Error("Invalid token");
         }
         else {
-            throw new Error('Token verification failed');
+            throw new Error("Token verification failed");
         }
     }
 };
@@ -99,8 +101,8 @@ exports.verifyToken = verifyToken;
 const extractTokenFromHeader = (authHeader) => {
     if (!authHeader)
         return null;
-    const parts = authHeader.split(' ');
-    if (parts.length !== 2 || parts[0] !== 'Bearer') {
+    const parts = authHeader.split(" ");
+    if (parts.length !== 2 || parts[0] !== "Bearer") {
         return null;
     }
     return parts[1];
@@ -110,21 +112,21 @@ exports.extractTokenFromHeader = extractTokenFromHeader;
  * Generate secure random token for password reset, email verification, etc.
  */
 const generateSecureToken = (length = 32) => {
-    return crypto_1.default.randomBytes(length).toString('hex');
+    return crypto_1.default.randomBytes(length).toString("hex");
 };
 exports.generateSecureToken = generateSecureToken;
 /**
  * Hash token for storage (for password reset tokens, etc.)
  */
 const hashToken = (token) => {
-    return crypto_1.default.createHash('sha256').update(token).digest('hex');
+    return crypto_1.default.createHash("sha256").update(token).digest("hex");
 };
 exports.hashToken = hashToken;
 /**
  * Generate a unique session token
  */
 const generateSessionToken = () => {
-    return crypto_1.default.randomBytes(32).toString('base64url');
+    return crypto_1.default.randomBytes(32).toString("base64url");
 };
 exports.generateSessionToken = generateSessionToken;
 /**

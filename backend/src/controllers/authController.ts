@@ -96,6 +96,39 @@ export const verifyEmailValidation = [
 ];
 
 /**
+ * Validation rules for create invitation
+ */
+export const createInvitationValidation = [
+  body("email")
+    .isEmail()
+    .normalizeEmail()
+    .withMessage("Please provide a valid email address"),
+  body("roleId")
+    .isLength({ min: 1 })
+    .withMessage("Role ID is required"),
+];
+
+/**
+ * Validation rules for accept invitation
+ */
+export const acceptInvitationValidation = [
+  body("token")
+    .isLength({ min: 1 })
+    .withMessage("Invitation token is required"),
+  body("password")
+    .isLength({ min: 8 })
+    .withMessage("Password must be at least 8 characters long"),
+  body("firstName")
+    .optional()
+    .isLength({ min: 1, max: 50 })
+    .withMessage("First name must be between 1 and 50 characters"),
+  body("lastName")
+    .optional()
+    .isLength({ min: 1, max: 50 })
+    .withMessage("Last name must be between 1 and 50 characters"),
+];
+
+/**
  * Handle validation errors
  */
 const handleValidationErrors = (req: Request, res: Response) => {
@@ -366,6 +399,76 @@ export const getProfile = async (req: Request, res: Response) => {
     res.status(500).json({
       error: "Request Failed",
       message: "Failed to get user profile",
+    });
+  }
+};
+
+/**
+ * Create user invitation
+ */
+export const createInvitation = async (req: Request, res: Response) => {
+  try {
+    const validationError = handleValidationErrors(req, res);
+    if (validationError) return validationError;
+
+    if (!req.user) {
+      return res.status(401).json({
+        error: "Unauthorized",
+        message: "Authentication required",
+      });
+    }
+
+    const { email, roleId } = req.body;
+    const tenantId = req.user.tenantId;
+
+    const result = await authService.createInvitation(
+      req.user.id,
+      email,
+      roleId,
+      tenantId
+    );
+
+    res.status(201).json({
+      success: true,
+      message: result.message,
+      data: { invitationToken: result.invitationToken },
+    });
+  } catch (error) {
+    console.error("Create invitation error:", error);
+    res.status(400).json({
+      error: "Invitation Failed",
+      message: error instanceof Error ? error.message : "Failed to create invitation",
+    });
+  }
+};
+
+/**
+ * Accept invitation
+ */
+export const acceptInvitation = async (req: Request, res: Response) => {
+  try {
+    const validationError = handleValidationErrors(req, res);
+    if (validationError) return validationError;
+
+    const { token, password, firstName, lastName } = req.body;
+
+    const result = await authService.acceptInvitation(
+      token,
+      password,
+      firstName,
+      lastName
+    );
+
+    res.status(200).json({
+      success: true,
+      message: result.message,
+      data: result,
+    });
+  } catch (error) {
+    console.error("Accept invitation error:", error);
+    res.status(400).json({
+      error: "Invitation Acceptance Failed",
+      message: error instanceof Error ? error.message : "Failed to accept invitation",
     });
   }
 };

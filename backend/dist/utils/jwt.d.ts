@@ -4,7 +4,7 @@ export interface TokenPayload {
     email: string;
     roles: string[];
     permissions: string[];
-    type: 'access' | 'refresh';
+    type: "access" | "refresh";
 }
 export interface TokenPair {
     accessToken: string;

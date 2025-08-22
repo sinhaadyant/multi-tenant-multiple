@@ -1,4 +1,4 @@
-import { Request, Response } from 'express';
+import { Request, Response } from "express";
 /**
  * Validation rules for login
  */
@@ -27,6 +27,14 @@ export declare const changePasswordValidation: import("express-validator").Valid
  * Validation rules for verify email
  */
 export declare const verifyEmailValidation: import("express-validator").ValidationChain[];
+/**
+ * Validation rules for create invitation
+ */
+export declare const createInvitationValidation: import("express-validator").ValidationChain[];
+/**
+ * Validation rules for accept invitation
+ */
+export declare const acceptInvitationValidation: import("express-validator").ValidationChain[];
 /**
  * User login
  */
@@ -63,6 +71,14 @@ export declare const verifyEmail: (req: Request, res: Response) => Promise<Respo
  * Get current user profile
  */
 export declare const getProfile: (req: Request, res: Response) => Promise<Response<any, Record<string, any>> | undefined>;
+/**
+ * Create user invitation
+ */
+export declare const createInvitation: (req: Request, res: Response) => Promise<Response<any, Record<string, any>> | undefined>;
+/**
+ * Accept invitation
+ */
+export declare const acceptInvitation: (req: Request, res: Response) => Promise<Response<any, Record<string, any>> | undefined>;
 /**
  * Health check for auth service
  */

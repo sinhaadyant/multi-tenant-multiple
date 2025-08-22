@@ -1,5 +1,7 @@
-import { LoginRequest, LoginResponse, RegisterRequest, RegisterResponse, RefreshTokenResponse, ForgotPasswordResponse, ResetPasswordResponse, ChangePasswordResponse, VerifyEmailResponse } from '../types/auth';
+import { LoginRequest, LoginResponse, RegisterRequest, RegisterResponse, RefreshTokenResponse, ForgotPasswordResponse, ResetPasswordResponse, ChangePasswordResponse, VerifyEmailResponse } from "../types/auth";
 export declare class AuthService {
+    private emailService;
+    constructor();
     /**
      * User login
      */
@@ -32,6 +34,17 @@ export declare class AuthService {
      * Verify email
      */
     verifyEmail(token: string): Promise<VerifyEmailResponse>;
+    /**
+     * Create user invitation
+     */
+    createInvitation(inviterUserId: string, email: string, roleId: string, tenantId: string): Promise<{
+        invitationToken: string;
+        message: string;
+    }>;
+    /**
+     * Accept invitation and complete registration
+     */
+    acceptInvitation(invitationToken: string, password: string, firstName?: string, lastName?: string): Promise<RegisterResponse>;
     /**
      * Log audit event
      */

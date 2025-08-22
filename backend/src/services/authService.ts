@@ -22,10 +22,16 @@ import {
   AuthUser,
   AuthTenant,
 } from "../types/auth";
+import { EmailService } from "./emailService";
 
 const prisma = new PrismaClient();
 
 export class AuthService {
+  private emailService: EmailService;
+
+  constructor() {
+    this.emailService = new EmailService();
+  }
   /**
    * User login
    */
@@ -290,7 +296,32 @@ export class AuthService {
       { email }
     );
 
-    // TODO: Send verification email if required
+    // Send verification email if required
+    if (requiresVerification && emailVerificationToken) {
+      try {
+        await this.emailService.sendVerificationEmail(
+          email,
+          firstName || null,
+          emailVerificationToken,
+          targetTenant.name
+        );
+      } catch (emailError) {
+        console.error('Failed to send verification email:', emailError);
+        // Don't fail registration if email fails
+      }
+    } else {
+      // Send welcome email for immediate active accounts
+      try {
+        await this.emailService.sendWelcomeEmail(
+          email,
+          firstName || null,
+          targetTenant.name
+        );
+      } catch (emailError) {
+        console.error('Failed to send welcome email:', emailError);
+        // Don't fail registration if email fails
+      }
+    }
 
     return {
       user: {
@@ -610,6 +641,206 @@ export class AuthService {
 
     return {
       message: "Email has been verified successfully. You can now log in.",
+    };
+  }
+
+  /**
+   * Create user invitation
+   */
+  async createInvitation(
+    inviterUserId: string,
+    email: string,
+    roleId: string,
+    tenantId: string
+  ): Promise<{ invitationToken: string; message: string }> {
+    // Check if inviter has permission to invite users
+    const inviter = await prisma.user.findUnique({
+      where: { id: inviterUserId },
+      include: {
+        tenant: true,
+        userRoles: {
+          include: { role: true }
+        }
+      }
+    });
+
+    if (!inviter) {
+      throw new Error('Inviter not found');
+    }
+
+    // Check if user already exists
+    const existingUser = await prisma.user.findUnique({
+      where: {
+        email_tenantId: { email, tenantId }
+      }
+    });
+
+    if (existingUser) {
+      throw new Error('User with this email already exists');
+    }
+
+    // Validate role exists and belongs to tenant
+    const role = await prisma.role.findUnique({
+      where: { id: roleId },
+    });
+
+    if (!role || role.tenantId !== tenantId) {
+      throw new Error('Invalid role or role does not belong to tenant');
+    }
+
+    // Generate invitation token
+    const invitationToken = generateSecureToken();
+    const hashedToken = hashToken(invitationToken);
+    const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 days
+
+    // Store invitation (we'll create a new table for this)
+    // For now, we'll use a simple approach with user table
+    const invitationData = {
+      email,
+      tenantId,
+      roleId,
+      invitedBy: inviterUserId,
+      token: hashedToken,
+      expiresAt: expiresAt.toISOString(),
+    };
+
+    // Store in user table as pending invitation
+    await prisma.user.create({
+      data: {
+        tenantId,
+        email,
+        password: 'INVITATION_PENDING', // Placeholder password
+        firstName: null,
+        lastName: null,
+        status: 'PENDING_VERIFICATION',
+        emailVerified: false,
+        emailVerificationToken: hashedToken,
+        createdById: inviterUserId,
+      }
+    });
+
+    // Send invitation email
+    try {
+      await this.emailService.sendInvitationEmail(
+        email,
+        `${inviter.firstName} ${inviter.lastName}`.trim() || inviter.email,
+        inviter.tenant.name,
+        invitationToken,
+        role.name
+      );
+    } catch (emailError) {
+      console.error('Failed to send invitation email:', emailError);
+      throw new Error('Failed to send invitation email');
+    }
+
+    // Log invitation
+    await this.logAuditEvent(
+      tenantId,
+      inviterUserId,
+      'USER_INVITED',
+      'users',
+      null,
+      { email, roleId, invitationToken: 'REDACTED' }
+    );
+
+    return {
+      invitationToken: process.env.NODE_ENV === 'development' ? invitationToken : 'SENT',
+      message: 'Invitation sent successfully'
+    };
+  }
+
+  /**
+   * Accept invitation and complete registration
+   */
+  async acceptInvitation(
+    invitationToken: string,
+    password: string,
+    firstName?: string,
+    lastName?: string
+  ): Promise<RegisterResponse> {
+    const hashedToken = hashToken(invitationToken);
+
+    // Find pending invitation
+    const pendingUser = await prisma.user.findFirst({
+      where: {
+        emailVerificationToken: hashedToken,
+        status: 'PENDING_VERIFICATION',
+        password: 'INVITATION_PENDING'
+      },
+      include: {
+        tenant: true
+      }
+    });
+
+    if (!pendingUser) {
+      throw new Error('Invalid or expired invitation token');
+    }
+
+    // Validate password strength
+    const passwordValidation = validatePasswordStrength(password);
+    if (!passwordValidation.isValid) {
+      throw new Error(
+        `Password validation failed: ${passwordValidation.feedback.join(", ")}`
+      );
+    }
+
+    // Hash password
+    const hashedPassword = await hashPassword(password);
+
+    // Update user with actual data
+    const user = await prisma.user.update({
+      where: { id: pendingUser.id },
+      data: {
+        password: hashedPassword,
+        firstName,
+        lastName,
+        status: 'ACTIVE',
+        emailVerified: true,
+        emailVerificationToken: null,
+      },
+      include: {
+        tenant: true
+      }
+    });
+
+    // Send welcome email
+    try {
+      await this.emailService.sendWelcomeEmail(
+        user.email,
+        firstName || null,
+        user.tenant.name
+      );
+    } catch (emailError) {
+      console.error('Failed to send welcome email:', emailError);
+      // Don't fail on email error
+    }
+
+    // Log invitation acceptance
+    await this.logAuditEvent(
+      user.tenantId,
+      user.id,
+      'INVITATION_ACCEPTED',
+      'users',
+      null,
+      { email: user.email }
+    );
+
+    return {
+      user: {
+        id: user.id,
+        email: user.email,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        status: user.status,
+        emailVerified: user.emailVerified,
+      },
+      tenant: {
+        id: user.tenant.id,
+        name: user.tenant.name,
+        slug: user.tenant.slug,
+      },
+      message: 'Invitation accepted successfully. You can now log in.',
+      requiresVerification: false,
     };
   }
 

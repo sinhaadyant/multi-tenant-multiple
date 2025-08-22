@@ -1,0 +1,270 @@
+<div class="header bg-gradient-success py-7 py-lg-8">
+  <div class="container">
+    <div class="header-body text-center mb-7">
+      <div class="row justify-content-center">
+        <div class="col-lg-5 col-md-6">
+          <h1 class="text-white">Welcome!</h1>
+          <p class="text-lead text-light">
+            {{
+              isInvitation
+                ? "Complete your invitation to join the team"
+                : "Create your account to get started"
+            }}
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="separator separator-bottom separator-skew zindex-100">
+    <svg
+      x="0"
+      y="0"
+      viewBox="0 0 2560 100"
+      preserveAspectRatio="none"
+      version="1.1"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <polygon class="fill-default" points="2560 0 2560 100 0 100"></polygon>
+    </svg>
+  </div>
+</div>
+
+<!-- Page content -->
+<div class="container mt--8 pb-5">
+  <div class="row justify-content-center">
+    <div class="col-lg-6 col-md-8">
+      <div class="card bg-secondary shadow border-0">
+        <div class="card-header bg-transparent pb-5">
+          <div class="text-muted text-center mt-2 mb-3">
+            <small>{{
+              isInvitation
+                ? "Complete your invitation"
+                : "Sign up with credentials"
+            }}</small>
+          </div>
+        </div>
+        <div class="card-body px-lg-5 py-lg-5">
+          <!-- Error Alert -->
+          <div *ngIf="error" class="alert alert-danger" role="alert">
+            <span class="alert-inner--icon">
+              <i class="ni ni-support-16"></i>
+            </span>
+            <span class="alert-inner--text">
+              <strong>Error!</strong> {{ error }}
+            </span>
+          </div>
+
+          <!-- Success Alert -->
+          <div *ngIf="successMessage" class="alert alert-success" role="alert">
+            <span class="alert-inner--icon">
+              <i class="ni ni-like-2"></i>
+            </span>
+            <span class="alert-inner--text">
+              <strong>Success!</strong> {{ successMessage }}
+            </span>
+          </div>
+
+          <form [formGroup]="registerForm" (ngSubmit)="onSubmit()" role="form">
+            <!-- First Name -->
+            <div class="form-group">
+              <div class="input-group input-group-alternative mb-3">
+                <div class="input-group-prepend">
+                  <span class="input-group-text">
+                    <i class="ni ni-hat-3"></i>
+                  </span>
+                </div>
+                <input
+                  class="form-control"
+                  [class.is-invalid]="isFieldInvalid('firstName')"
+                  placeholder="First Name"
+                  type="text"
+                  formControlName="firstName"
+                  [disabled]="isLoading"
+                />
+              </div>
+              <div *ngIf="isFieldInvalid('firstName')" class="invalid-feedback">
+                {{ getFieldError("firstName") }}
+              </div>
+            </div>
+
+            <!-- Last Name -->
+            <div class="form-group">
+              <div class="input-group input-group-alternative mb-3">
+                <div class="input-group-prepend">
+                  <span class="input-group-text">
+                    <i class="ni ni-hat-3"></i>
+                  </span>
+                </div>
+                <input
+                  class="form-control"
+                  [class.is-invalid]="isFieldInvalid('lastName')"
+                  placeholder="Last Name"
+                  type="text"
+                  formControlName="lastName"
+                  [disabled]="isLoading"
+                />
+              </div>
+              <div *ngIf="isFieldInvalid('lastName')" class="invalid-feedback">
+                {{ getFieldError("lastName") }}
+              </div>
+            </div>
+
+            <!-- Email -->
+            <div class="form-group">
+              <div class="input-group input-group-alternative mb-3">
+                <div class="input-group-prepend">
+                  <span class="input-group-text">
+                    <i class="ni ni-email-83"></i>
+                  </span>
+                </div>
+                <input
+                  class="form-control"
+                  [class.is-invalid]="isFieldInvalid('email')"
+                  placeholder="Email"
+                  type="email"
+                  formControlName="email"
+                  [disabled]="isLoading"
+                />
+              </div>
+              <div *ngIf="isFieldInvalid('email')" class="invalid-feedback">
+                {{ getFieldError("email") }}
+              </div>
+            </div>
+
+            <!-- Password -->
+            <div class="form-group">
+              <div class="input-group input-group-alternative">
+                <div class="input-group-prepend">
+                  <span class="input-group-text">
+                    <i class="ni ni-lock-circle-open"></i>
+                  </span>
+                </div>
+                <input
+                  class="form-control"
+                  [class.is-invalid]="isFieldInvalid('password')"
+                  placeholder="Password"
+                  type="password"
+                  formControlName="password"
+                  [disabled]="isLoading"
+                />
+              </div>
+              <div *ngIf="isFieldInvalid('password')" class="invalid-feedback">
+                {{ getFieldError("password") }}
+              </div>
+            </div>
+
+            <!-- Confirm Password -->
+            <div class="form-group">
+              <div class="input-group input-group-alternative">
+                <div class="input-group-prepend">
+                  <span class="input-group-text">
+                    <i class="ni ni-lock-circle-open"></i>
+                  </span>
+                </div>
+                <input
+                  class="form-control"
+                  [class.is-invalid]="isFieldInvalid('confirmPassword')"
+                  placeholder="Confirm Password"
+                  type="password"
+                  formControlName="confirmPassword"
+                  [disabled]="isLoading"
+                />
+              </div>
+              <div
+                *ngIf="isFieldInvalid('confirmPassword')"
+                class="invalid-feedback"
+              >
+                {{ getFieldError("confirmPassword") }}
+              </div>
+            </div>
+
+            <!-- Password Strength Indicator -->
+            <div
+              class="text-muted font-italic"
+              *ngIf="registerForm.get('password')?.value"
+            >
+              <small>
+                Password strength:
+                <span
+                  [class]="
+                    'text-' + getPasswordStrength().color + ' font-weight-700'
+                  "
+                >
+                  {{ getPasswordStrength().strength }}
+                </span>
+              </small>
+              <div class="progress progress-xs mt-2">
+                <div
+                  class="progress-bar"
+                  [class]="'bg-' + getPasswordStrength().color"
+                  [style.width.%]="getPasswordStrength().percentage"
+                ></div>
+              </div>
+            </div>
+
+            <!-- Terms Agreement -->
+            <div class="row my-4">
+              <div class="col-12">
+                <div
+                  class="custom-control custom-control-alternative custom-checkbox"
+                >
+                  <input
+                    class="custom-control-input"
+                    id="customCheckRegister"
+                    type="checkbox"
+                    formControlName="agreeToTerms"
+                    [disabled]="isLoading"
+                  />
+                  <label class="custom-control-label" for="customCheckRegister">
+                    <span class="text-muted">
+                      I agree with the
+                      <a href="#" (click)="$event.preventDefault()"
+                        >Privacy Policy</a
+                      >
+                    </span>
+                  </label>
+                </div>
+                <div
+                  *ngIf="isFieldInvalid('agreeToTerms')"
+                  class="text-danger mt-1"
+                >
+                  <small>{{ getFieldError("agreeToTerms") }}</small>
+                </div>
+              </div>
+            </div>
+
+            <!-- Submit Button -->
+            <div class="text-center">
+              <button
+                type="submit"
+                class="btn btn-primary mt-4"
+                [disabled]="isLoading || registerForm.invalid"
+              >
+                <span
+                  *ngIf="isLoading"
+                  class="spinner-border spinner-border-sm me-2"
+                  role="status"
+                ></span>
+                {{
+                  isLoading
+                    ? "Creating account..."
+                    : isInvitation
+                    ? "Accept Invitation"
+                    : "Create account"
+                }}
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <div class="row mt-3" *ngIf="!isInvitation">
+        <div class="col-6">
+          <a routerLink="/login" class="text-light">
+            <small>Already have an account?</small>
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

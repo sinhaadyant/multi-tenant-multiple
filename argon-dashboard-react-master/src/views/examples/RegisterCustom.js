@@ -17,8 +17,7 @@ import {
   Alert,
 } from "reactstrap";
 
-import { useRegisterMutation } from "../../store/api/authApi";
-import { setError, setLoading } from "../../store/slices/authSlice";
+import { setError } from "../../store/store";
 
 const RegisterCustom = () => {
   const [email, setEmail] = useState("");
@@ -40,7 +39,15 @@ const RegisterCustom = () => {
     (state) => state.auth
   );
 
-  const [registerMutation] = useRegisterMutation();
+  // API call function
+  const callRegisterAPI = async (userData) => {
+    const response = await fetch('http://localhost:3000/api/auth/register', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(userData)
+    });
+    return await response.json();
+  };
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -92,7 +99,6 @@ const RegisterCustom = () => {
       return;
     }
 
-    dispatch(setLoading(true));
     dispatch(setError(null));
 
     try {
@@ -104,22 +110,24 @@ const RegisterCustom = () => {
         ...(invitationToken && { invitationToken }),
       };
 
-      const result = await registerMutation(registrationData).unwrap();
+      const result = await callRegisterAPI(registrationData);
 
-      setSuccessMessage(result.data.message);
+      if (result.success) {
+        setSuccessMessage(result.data.message);
 
-      // If registration successful and doesn't require verification, redirect to login
-      if (!result.data.requiresVerification) {
-        setTimeout(() => {
-          navigate("/auth/login", {
-            state: { message: "Registration successful! Please log in." },
-          });
-        }, 2000);
+        // If registration successful and doesn't require verification, redirect to login
+        if (!result.data.requiresVerification) {
+          setTimeout(() => {
+            navigate("/auth/login", {
+              state: { message: "Registration successful! Please log in." },
+            });
+          }, 2000);
+        }
+      } else {
+        dispatch(setError(result.message || "Registration failed"));
       }
     } catch (error) {
-      dispatch(setError(error.data?.message || "Registration failed"));
-    } finally {
-      dispatch(setLoading(false));
+      dispatch(setError(error.message || "Registration failed"));
     }
   };
 

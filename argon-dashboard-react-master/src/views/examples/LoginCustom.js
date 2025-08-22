@@ -17,8 +17,7 @@ import {
   Alert,
 } from "reactstrap";
 
-import { useLoginMutation } from "../../store/api/authApi";
-import { loginSuccess, setError, setLoading } from "../../store/slices/authSlice";
+import { loginSuccess, setError } from "../../store/store";
 
 const LoginCustom = () => {
   const [email, setEmail] = useState("");
@@ -30,7 +29,15 @@ const LoginCustom = () => {
   const navigate = useNavigate();
   const { isLoading, error, isAuthenticated } = useSelector((state) => state.auth);
   
-  const [loginMutation] = useLoginMutation();
+  // API call function
+  const callLoginAPI = async (credentials) => {
+    const response = await fetch('http://localhost:3000/api/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(credentials)
+    });
+    return await response.json();
+  };
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -54,30 +61,31 @@ const LoginCustom = () => {
       return;
     }
 
-    dispatch(setLoading(true));
     dispatch(setError(null));
 
     try {
-      const result = await loginMutation({
+      const result = await callLoginAPI({
         email,
         password,
         rememberMe,
-      }).unwrap();
+      });
 
-      // Dispatch success action to store auth data
-      dispatch(loginSuccess({
-        user: result.data.user,
-        tenant: result.data.tenant,
-        tokens: result.data.tokens,
-        roles: result.data.roles,
-        permissions: result.data.permissions,
-      }));
+      if (result.success) {
+        // Dispatch success action to store auth data
+        dispatch(loginSuccess({
+          user: result.data.user,
+          tenant: result.data.tenant,
+          tokens: result.data.tokens,
+          roles: result.data.roles,
+          permissions: result.data.permissions,
+        }));
 
-      navigate("/admin/index");
+        navigate("/admin/index");
+      } else {
+        dispatch(setError(result.message || "Login failed"));
+      }
     } catch (error) {
-      dispatch(setError(error.data?.message || "Login failed"));
-    } finally {
-      dispatch(setLoading(false));
+      dispatch(setError(error.message || "Login failed"));
     }
   };
 

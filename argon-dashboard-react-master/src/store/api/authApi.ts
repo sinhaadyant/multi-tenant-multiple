@@ -5,7 +5,7 @@ import {
   RegisterRequest,
   RegisterResponse,
 } from "../../types/auth";
-import { RootState } from "../store";
+import { RootState } from "../types";
 
 export const authApi = createApi({
   reducerPath: "authApi",

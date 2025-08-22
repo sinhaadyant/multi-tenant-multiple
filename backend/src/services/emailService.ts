@@ -1,4 +1,4 @@
-import nodemailer from 'nodemailer';
+import nodemailer from "nodemailer";
 
 export class EmailService {
   private transporter: nodemailer.Transporter;
@@ -6,26 +6,26 @@ export class EmailService {
   constructor() {
     // For development, use a simple test configuration
     // In production, replace with real SMTP settings
-    if (process.env.NODE_ENV === 'development') {
+    if (process.env.NODE_ENV === "development") {
       // Use a fake transporter for development
       this.transporter = {
         sendMail: async (mailOptions: any) => {
-          console.log('📧 Email would be sent:', {
+          console.log("📧 Email would be sent:", {
             to: mailOptions.to,
             subject: mailOptions.subject,
             // Don't log the full HTML to keep logs clean
           });
-          return { messageId: 'dev-' + Date.now() };
-        }
+          return { messageId: "dev-" + Date.now() };
+        },
       } as any;
     } else {
       this.transporter = nodemailer.createTransport({
-        host: process.env.SMTP_HOST || 'smtp.ethereal.email',
-        port: parseInt(process.env.SMTP_PORT || '587'),
+        host: process.env.SMTP_HOST || "smtp.ethereal.email",
+        port: parseInt(process.env.SMTP_PORT || "587"),
         auth: {
-          user: process.env.SMTP_USER || 'ethereal.user@ethereal.email',
-          pass: process.env.SMTP_PASS || 'ethereal.pass'
-        }
+          user: process.env.SMTP_USER || "ethereal.user@ethereal.email",
+          pass: process.env.SMTP_PASS || "ethereal.pass",
+        },
       });
     }
   }
@@ -36,17 +36,19 @@ export class EmailService {
     verificationToken: string,
     tenantName: string
   ): Promise<void> {
-    const verificationUrl = `${process.env.FRONTEND_URL || 'http://localhost:3001'}/auth/verify-email?token=${verificationToken}`;
-    
+    const verificationUrl = `${
+      process.env.FRONTEND_URL || "http://localhost:3001"
+    }/auth/verify-email?token=${verificationToken}`;
+
     const mailOptions = {
-      from: process.env.EMAIL_FROM || 'noreply@yourdomain.com',
+      from: process.env.EMAIL_FROM || "noreply@yourdomain.com",
       to: email,
       subject: `Welcome to ${tenantName} - Verify Your Email`,
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
           <h2 style="color: #5e72e4;">Welcome to ${tenantName}!</h2>
           
-          <p>Hello ${firstName || 'there'},</p>
+          <p>Hello ${firstName || "there"},</p>
           
           <p>Thank you for registering with ${tenantName}. To complete your registration and activate your account, please verify your email address by clicking the button below:</p>
           
@@ -68,20 +70,20 @@ export class EmailService {
             If you didn't create an account with us, please ignore this email.
           </p>
         </div>
-      `
+      `,
     };
 
     try {
       const info = await this.transporter.sendMail(mailOptions);
-      console.log('Verification email sent:', info.messageId);
-      
+      console.log("Verification email sent:", info.messageId);
+
       // In development, log the preview URL
-      if (process.env.NODE_ENV === 'development') {
-        console.log('Preview URL:', nodemailer.getTestMessageUrl(info));
+      if (process.env.NODE_ENV === "development") {
+        console.log("Preview URL:", nodemailer.getTestMessageUrl(info));
       }
     } catch (error) {
-      console.error('Failed to send verification email:', error);
-      throw new Error('Failed to send verification email');
+      console.error("Failed to send verification email:", error);
+      throw new Error("Failed to send verification email");
     }
   }
 
@@ -92,10 +94,12 @@ export class EmailService {
     invitationToken: string,
     roleName: string
   ): Promise<void> {
-    const invitationUrl = `${process.env.FRONTEND_URL || 'http://localhost:3001'}/auth/accept-invitation?token=${invitationToken}`;
-    
+    const invitationUrl = `${
+      process.env.FRONTEND_URL || "http://localhost:3001"
+    }/auth/accept-invitation?token=${invitationToken}`;
+
     const mailOptions = {
-      from: process.env.EMAIL_FROM || 'noreply@yourdomain.com',
+      from: process.env.EMAIL_FROM || "noreply@yourdomain.com",
       to: email,
       subject: `You're invited to join ${tenantName}`,
       html: `
@@ -126,19 +130,19 @@ export class EmailService {
             If you weren't expecting this invitation, please ignore this email.
           </p>
         </div>
-      `
+      `,
     };
 
     try {
       const info = await this.transporter.sendMail(mailOptions);
-      console.log('Invitation email sent:', info.messageId);
-      
-      if (process.env.NODE_ENV === 'development') {
-        console.log('Preview URL:', nodemailer.getTestMessageUrl(info));
+      console.log("Invitation email sent:", info.messageId);
+
+      if (process.env.NODE_ENV === "development") {
+        console.log("Preview URL:", nodemailer.getTestMessageUrl(info));
       }
     } catch (error) {
-      console.error('Failed to send invitation email:', error);
-      throw new Error('Failed to send invitation email');
+      console.error("Failed to send invitation email:", error);
+      throw new Error("Failed to send invitation email");
     }
   }
 
@@ -147,17 +151,19 @@ export class EmailService {
     firstName: string | null,
     tenantName: string
   ): Promise<void> {
-    const loginUrl = `${process.env.FRONTEND_URL || 'http://localhost:3001'}/auth/login`;
-    
+    const loginUrl = `${
+      process.env.FRONTEND_URL || "http://localhost:3001"
+    }/auth/login`;
+
     const mailOptions = {
-      from: process.env.EMAIL_FROM || 'noreply@yourdomain.com',
+      from: process.env.EMAIL_FROM || "noreply@yourdomain.com",
       to: email,
       subject: `Welcome to ${tenantName}!`,
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
           <h2 style="color: #5e72e4;">Welcome to ${tenantName}!</h2>
           
-          <p>Hello ${firstName || 'there'},</p>
+          <p>Hello ${firstName || "there"},</p>
           
           <p>Your account has been successfully created and verified. You can now access your dashboard and start using all the features available to you.</p>
           
@@ -176,14 +182,14 @@ export class EmailService {
             Thank you for choosing ${tenantName}!
           </p>
         </div>
-      `
+      `,
     };
 
     try {
       const info = await this.transporter.sendMail(mailOptions);
-      console.log('Welcome email sent:', info.messageId);
+      console.log("Welcome email sent:", info.messageId);
     } catch (error) {
-      console.error('Failed to send welcome email:', error);
+      console.error("Failed to send welcome email:", error);
       // Don't throw error for welcome email failures
     }
   }
@@ -194,17 +200,19 @@ export class EmailService {
     resetToken: string,
     tenantName: string
   ): Promise<void> {
-    const resetUrl = `${process.env.FRONTEND_URL || 'http://localhost:3001'}/auth/reset-password?token=${resetToken}`;
-    
+    const resetUrl = `${
+      process.env.FRONTEND_URL || "http://localhost:3001"
+    }/auth/reset-password?token=${resetToken}`;
+
     const mailOptions = {
-      from: process.env.EMAIL_FROM || 'noreply@yourdomain.com',
+      from: process.env.EMAIL_FROM || "noreply@yourdomain.com",
       to: email,
       subject: `Password Reset Request - ${tenantName}`,
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
           <h2 style="color: #f5365c;">Password Reset Request</h2>
           
-          <p>Hello ${firstName || 'there'},</p>
+          <p>Hello ${firstName || "there"},</p>
           
           <p>We received a request to reset your password for your ${tenantName} account.</p>
           
@@ -228,15 +236,15 @@ export class EmailService {
             For security reasons, this link will only work once.
           </p>
         </div>
-      `
+      `,
     };
 
     try {
       const info = await this.transporter.sendMail(mailOptions);
-      console.log('Password reset email sent:', info.messageId);
+      console.log("Password reset email sent:", info.messageId);
     } catch (error) {
-      console.error('Failed to send password reset email:', error);
-      throw new Error('Failed to send password reset email');
+      console.error("Failed to send password reset email:", error);
+      throw new Error("Failed to send password reset email");
     }
   }
 }
